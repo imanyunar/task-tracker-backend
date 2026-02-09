@@ -12,15 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('email')->unique();
-                $table->string('password');
-                // Foreign Key ke Departments
-                $table->foreignId('department_id')->constrained('departments')->onDelete('cascade');
-                $table->enum('role', ['admin', 'manager', 'employee'])->default('employee');
-                $table->timestamps();
-            });
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            
+            // Foreign Key ke Departments (Sudah ada di kode kamu)
+            $table->foreignId('department_id')->constrained('departments')->onDelete('cascade');
+            
+            // UBAH: Dari Enum menjadi ForeignId ke tabel roles
+            // Kita beri default 3 (Employee) agar jika kosong otomatis terisi.
+            $table->foreignId('role_id')->default(3)->constrained('roles')->onDelete('cascade');
+            
+            $table->timestamps();
+        });
     }
 
     /**
@@ -28,6 +33,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['department_id']);
+            $table->dropForeign(['role_id']);
+        });
         Schema::dropIfExists('users');
     }
 };

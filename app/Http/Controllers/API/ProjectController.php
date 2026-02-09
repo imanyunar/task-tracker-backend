@@ -10,12 +10,22 @@ use Illuminate\Http\Response;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $projects = Project::with(['members', 'tasks'])->get();
-        return response()->json(['success' => true, 'data' => $projects], 200);
-    }
+        $user = $request->user();
 
+        if($user->role->name === 'employee'){
+            $projects = Project::whereHas('members', function($query) use ($user){
+                $query->where('user_id', $user->id);
+            })->get();
+
+    }   else{
+            $projects = Project::all();
+        }
+
+        return response()-> json($projects);
+    
+    }
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

@@ -17,6 +17,7 @@ class AuthController extends Controller
             'email'    => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'department_id' => 'required|exists:departments,id',
+            
         ]);
 
         if ($validator->fails()) {
@@ -28,7 +29,7 @@ class AuthController extends Controller
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'department_id' => $request->department_id,
-            'role'     => 'employee', 
+            'role_id'     => 3,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -60,14 +61,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Email atau password salah'], 401);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Login berhasil',
-            'access_token' => $token,
-            'token_type'   => 'Bearer',
-        ], 200);
+       
 
         $token = $user->createToken('auth_token')->plainTextToken;
         return response()->json([
@@ -75,7 +69,8 @@ class AuthController extends Controller
             'message' => 'Login berhasil',
             'access_token' => $token,
             'token_type'   => 'Bearer',
-            'user'         => $user
+            'user'         => $user,
+            'role'         => $user->role->name,
         ], 200);       
     }
 

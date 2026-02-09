@@ -9,23 +9,19 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    /**
-     * Menampilkan daftar semua user beserta nama departemennya.
-     */
-    public function index()
+  
+    public function index(Request $request)
     {
-        // Eager load department agar tidak berat di database
-        $users = User::with('department')->get();
+            $user = $request->user();
+            if($user->role->name === 'employee'){
+                return response()->json(['message' => 'Akses ditolak'], 403);
+            }
+            $allUsers =  User::with('department', 'role')->get();
+            return response()-> json($allUsers);
 
-        return response()->json([
-            'success' => true,
-            'data'    => $users
-        ], 200);
     }
 
-    /**
-     * Membuat User (Karyawan) baru.
-     */
+    
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [

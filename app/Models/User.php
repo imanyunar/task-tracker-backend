@@ -19,7 +19,7 @@ class User extends Authenticatable
         'email',
         'password',
         'department_id',
-        'role',
+        'role_id',
     ];
 
     /**
@@ -67,4 +67,11 @@ class User extends Authenticatable
                     ->withPivot('role_in_project')
                     ->withTimestamps();
     }
+
+   
+
+        public function role()
+        {
+            return $this->belongsTo(Role::class);
+        }
 }

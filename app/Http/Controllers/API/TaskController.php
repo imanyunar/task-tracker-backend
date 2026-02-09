@@ -12,13 +12,17 @@ class TaskController extends Controller
     /**
      * Menampilkan semua daftar tugas.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::with(['project', 'assignee'])->get();
-        return response()->json([
-            'success' => true, 
-            'data' => $tasks
-        ], 200);
+            $user = $request->user();
+            if ($user->role->name === 'employee'){
+                $tasks = Task::where('user_id', $user->id)->get();
+            }else{
+                $tasks = Task::all();
+            }
+
+            return response()-> json($tasks);
+
     }
 
     /**

@@ -15,6 +15,7 @@ return new class extends Migration
                 $table->id();
                 $table->foreignId('project_id')->constrained()->onDelete('cascade');
                 $table->foreignId('assigned_to')->constrained('users')->onDelete('cascade');
+                $table->foreignId('user_id')->constrained()->onDelete('cascade');
                 $table->string('title');
                 $table->text('description')->nullable();
                 $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
