@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Response;
 
 class ProjectController extends Controller
 {
@@ -33,16 +34,29 @@ class ProjectController extends Controller
      * Menambahkan anggota tim ke proyek (Many-to-Many)
      */
     public function addMember(Request $request, $id)
-    {
-        $project = Project::findOrFail($id);
-        
-        // Attach user ke project via pivot table
-        $project->members()->attach($request->user_id, [
-            'role_in_project' => $request->role // misal: Lead, Developer
-        ]);
+{
+    // 1. Validasi input agar tidak error SQL
+            $validator = Validator::make($request->all(), [
+                'user_id' => 'required|exists:users,id',
+                'role'    => 'required|string|max:100',
+            ]);
 
-        return response()->json(['success' => true, 'message' => 'Anggota berhasil ditambahkan']);
-    }
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 422);
+            }
+
+            $project = Project::findOrFail($id);
+            
+            // 2. Gunakan syncWithoutDetaching agar tidak ada user ganda di proyek yang sama
+            $project->members()->syncWithoutDetaching([
+                $request->user_id => ['role_in_project' => $request->role]
+            ]);
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Anggota berhasil ditambahkan ke tim proyek'
+            ]);
+}
 
     public function show($id)
     {

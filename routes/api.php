@@ -11,10 +11,13 @@ use App\Http\Controllers\API\AttendanceController;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
-
-Route::apiResource('departments', DepartmentController::class);
-Route::apiResource('users', UserController::class);
-Route::apiResource('projects', ProjectController::class);
-Route::apiResource('tasks', TaskController::class);
-Route::apiResource('attendances', AttendanceController::class);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('departments', DepartmentController::class);
+    Route::apiResource('users', UserController::class);
+    Route::apiResource('projects', ProjectController::class);
+    Route::apiResource('tasks', TaskController::class);
+    Route::apiResource('attendances', AttendanceController::class);
+    Route::post('projects/{id}/add-member', [ProjectController::class, 'addMember']); 
+    Route::post('logout', [AuthController::class, 'logout']);
+});
 

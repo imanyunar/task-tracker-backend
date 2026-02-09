@@ -10,15 +10,13 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    /**
-     * Register User Baru
-     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'department_id' => 'required|exists:departments,id',
         ]);
 
         if ($validator->fails()) {
@@ -26,57 +24,69 @@ class AuthController extends Controller
         }
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name'     => $request->name,
+            'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'department_id' => $request->department_id,
+            'role'     => 'employee', 
         ]);
 
+        $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
-            'message' => 'User berhasil dibuat',
-            'user' => $user
+            'success' => true,
+            'message' => 'User berhasil didaftarkan',
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
+            'data'    => $user
         ], 201);
     }
 
-    /**
-     * Login & Dapatkan Token
-     */
+
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required|string|email',
+            'password' => 'required|string',
+        ]);
 
-        if (! $token = auth()->guard('api')->attempt($credentials)) {
-            return response()->json(['error' => 'Email atau Password salah'], 401);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
         }
 
-        return $this->respondWithToken($token);
-    }
+        $user = User::where('email', $request->email)->first();
 
-    /**
-     * Lihat Data Saya (User yang sedang login)
-     */
-    public function me()
-    {
-        return response()->json(auth()->guard('api')->user());
-    }
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Email atau password salah'], 401);
+        }
 
-    /**
-     * Logout
-     */
-    public function logout()
-    {
-        auth()->guard('api')->logout();
-        return response()->json(['message' => 'Berhasil logout']);
-    }
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-    /**
-     * Helper untuk format response token
-     */
-    protected function respondWithToken($token)
-    {
         return response()->json([
+            'success' => true,
+            'message' => 'Login berhasil',
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->guard('api')->factory()->getTTL() * 60
-        ]);
+            'token_type'   => 'Bearer',
+        ], 200);
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+        return response()->json([
+            'success' => true,
+            'message' => 'Login berhasil',
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
+            'user'         => $user
+        ], 200);       
+    }
+
+
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout berhasil',
+        ], 200);
     }
 }
