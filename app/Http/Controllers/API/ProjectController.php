@@ -74,4 +74,30 @@ class ProjectController extends Controller
         if (!$project) return response()->json(['message' => 'Project not found'], 404);
         return response()->json(['success' => true, 'data' => $project], 200);
     }
+
+    public function update(Request $request, $id)
+    {
+        $project = Project::find($id);
+        if (!$project) return response()->json(['message' => 'Project Tidak Ditemukan'], 404);
+
+        $validator = Validator::make($request->all(), [
+            'name'       => 'string|max:255',
+            'start_date' => 'date',
+            'end_date'   => 'date|after:start_date',
+        ]);
+
+        if ($validator->fails()) return response()->json($validator->errors(), 422);
+
+        $project->update($request->all());
+        return response()->json(['Berhasil Merubah Proyek' => true, 'data' => $project], 200);
+    }
+
+    public function destroy($id)
+    {
+        $project = Project::find($id);
+        if (!$project) return response()->json(['message' => 'Project Tidak Ditemukan'], 404);
+
+        $project->delete();
+        return response()->json(['success' => true, 'message' => 'Project Berhasil Dihapus'], 200);
+    }
 }

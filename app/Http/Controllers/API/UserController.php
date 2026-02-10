@@ -14,11 +14,14 @@ class UserController extends Controller
     {
             $user = $request->user();
             if($user->role->name === 'employee'){
-                return response()->json(['message' => 'Akses ditolak'], 403);
-            }
-            $allUsers =  User::with('department', 'role')->get();
-            return response()-> json($allUsers);
+                $users = User::where('id', $user->id)->get();
 
+
+    }else{
+                $users = User::all();
+            }
+
+            return response()-> json($users);
     }
 
     
@@ -51,12 +54,10 @@ class UserController extends Controller
         ], 201);
     }
 
-    /**
-     * Melihat profil lengkap satu user (Relasi paling kompleks).
-     */
+   
     public function show($id)
     {
-        // Mengambil user beserta departemen, daftar tugas, dan proyek yang diikuti
+        
         $user = User::with(['department', 'tasks', 'projects', 'attendances'])->find($id);
 
         if (!$user) {
@@ -69,9 +70,7 @@ class UserController extends Controller
         ], 200);
     }
 
-    /**
-     * Update data karyawan.
-     */
+   
     public function update(Request $request, $id)
     {
         $user = User::find($id);
@@ -80,7 +79,7 @@ class UserController extends Controller
             return response()->json(['message' => 'User tidak ditemukan'], 404);
         }
 
-        // Jika ada password baru, hash dulu
+        
         $data = $request->all();
         if ($request->has('password')) {
             $data['password'] = Hash::make($request->password);
