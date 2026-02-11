@@ -20,6 +20,7 @@ class User extends Authenticatable
         'password',
         'department_id',
         'role_id',
+        'api_token',
     ];
 
     /**
@@ -52,10 +53,7 @@ class User extends Authenticatable
      * Relasi ke Tasks (One-to-Many)
      * User berperan sebagai pelaksana (assigned_to).
      */
-    public function tasks(): HasMany
-    {
-        return $this->hasMany(Task::class, 'assigned_to');
-    }
+    
 
     /**
      * Relasi ke Projects (Many-to-Many)

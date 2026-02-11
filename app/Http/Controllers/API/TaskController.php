@@ -9,47 +9,37 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
-    /**
-     * Menampilkan semua daftar tugas.
-     */
     public function index(Request $request)
     {
         $user = $request->user();
+        $query = Task::with(['project']);
+        if ($user->role_id == 3){
+            $tasks = $query->whereHas('project.members', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->get();
 
-        // [DIUBAH]: Menggunakan role_id (3) lebih stabil & efisien daripada string 'employee'
-        // [KODE BARU]: Ditambahkan eager loading 'project' dan 'user' agar respon JSON lengkap
-        $query = Task::with(['project', 'user']);
-
-        if ($user->role_id == 3) { 
-            // [KODE AWAL]: $tasks = Task::where('user_id', $user->id)->get();
-            $tasks = $query->where('user_id', $user->id)->get();
-        } else {
-            // [KODE AWAL]: $tasks = Task::all();
+        }else{
             $tasks = $query->get();
         }
-
-        return response()->json($tasks);
+        return response()->json($tasks, 200);
     }
 
-    /**
-     * Menyimpan tugas baru.
-     */
     public function store(Request $request)
     {
-        // [TAMBAHAN BARU]: Proteksi Otorisasi
-        // Mencegah Employee (3) menembus API store via Postman
-        if ($request->user()->role_id == 3) {
-            return response()->json(['message' => 'Hanya Admin/Manager yang bisa membuat tugas'], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'project_id'  => 'required|exists:projects,id',
-            // [DIUBAH]: Dari 'assigned_to' menjadi 'user_id' agar sinkron dengan Migrasi & PostgreSQL
-            'user_id'     => 'required|exists:users,id', 
-            'title'       => 'required|string|max:255',
-            'priority'    => 'required|in:low,medium,high,urgent',
-            'status'      => 'required|in:todo,doing,review,done',
-            'due_date'    => 'required|date',
+        $user = $request->user();
+        if($user ->role_id == 3){
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak'
+            ], 403);
+        }else{ 
+            $validator = Validator::make($request->all(), [
+            'project_id' => 'required|exists:projects,id',
+            'title' => 'required|string',
+            'description' => 'nullable|string',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'status' => 'required|in:todo,review,doing,done',
+            'due_date' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -60,72 +50,51 @@ class TaskController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Tugas berhasil dibuat!',
-            // [KODE BARU]: Me-load relasi agar kita tahu project dan user mana yang terkait
-            'data'    => $task->load(['project', 'user']) 
+            'message' => 'Tugas Berhasil Dibuat',
+            'task' => $task
         ], 201);
-    }
-
-    /**
-     * Menampilkan detail satu tugas.
-     */
-    public function show($id)
-    {
-        // [DIUBAH]: Mengganti 'assignee' (jika di model belum ada) menjadi 'user' sesuai kolom user_id
-        $task = Task::with(['project', 'user'])->find($id);
-
-        if (!$task) {
-            return response()->json(['message' => 'Tugas tidak ditemukan'], 404);
         }
-
-        return response()->json(['success' => true, 'data' => $task], 200);
     }
 
-    /**
-     * Update data tugas.
-     */
-    public function update(Request $request, $id)
-    {
-        $task = Task::find($id);
-        if (!$task) return response()->json(['message' => 'Tugas tidak ditemukan'], 404);
-
+    public function update(Request $request, $id){
         $user = $request->user();
-
-        // [TAMBAHAN BARU]: Otorisasi Update
-        // Employee (3) hanya boleh update status, Admin (1/2) boleh semua.
-        if ($user->role_id == 3) {
-            if ($task->user_id !== $user->id) {
-                return response()->json(['message' => 'Anda tidak berwenang mengedit tugas ini'], 403);
+        $task = Task::findOrFail($id);
+        if($user ->role_id == 3){
+            $isMember = $task->project->members()->where('user_id', $user->id)->exists();
+            if (!$isMember) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak'
+                ], 403);
             }
-            // Employee dipaksa hanya bisa update status saja
-            $task->update($request->only('status'));
-        } else {
-            // Admin/Manager bebas update apapun
+                    $task->update($request->only('status'));
+
+        }else{
             $task->update($request->all());
         }
-
         return response()->json([
             'success' => true,
-            'message' => 'Tugas berhasil diperbarui',
-            'data'    => $task->load(['project', 'user'])
-        ]);
+            'message' => 'Tugas Berhasil Diperbarui',
+            'task' => $task
+        ], 200);
     }
 
-    /**
-     * Menghapus tugas.
-     */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        // [TAMBAHAN BARU]: Proteksi Delete
-        // Mencegah Employee menghapus tugas di database
-        if (request()->user()->role_id == 3) {
-            return response()->json(['message' => 'Akses ditolak'], 403);
+        $user = $request->user();
+        $task = Task::findOrFail($id);
+        if($user ->role_id == 3){
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses ditolak'
+            ], 403);
+        }else{
+            $task->delete();
         }
-
-        $task = Task::find($id);
-        if (!$task) return response()->json(['message' => 'Tugas tidak ditemukan'], 404);
-
-        $task->delete();
-        return response()->json(['success' => true, 'message' => 'Tugas berhasil dihapus']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Tugas Berhasil Dihapus'
+        ], 200);
     }
+
 }

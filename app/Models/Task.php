@@ -16,8 +16,6 @@ class Task extends Model
      */
     protected $fillable = [
         'project_id',
-        'assigned_to',
-        'user_id',
         'title',
         'description',
         'priority',
@@ -40,8 +38,5 @@ class Task extends Model
      * Karena nama kolomnya 'assigned_to' (bukan user_id), 
      * kita harus mendefinisikannya secara manual.
      */
-    public function assignee(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'assigned_to');
-    }
+    
 }

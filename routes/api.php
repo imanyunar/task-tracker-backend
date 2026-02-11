@@ -11,7 +11,7 @@ use App\Http\Controllers\API\AttendanceController;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::apiResource('departments', DepartmentController::class);
     Route::apiResource('users', UserController::class);
     Route::apiResource('projects', ProjectController::class);

@@ -25,8 +25,9 @@ return [
 
     // Tambahkan bagian ini
     'api' => [
-        'driver' => 'jwt', // Kita menggunakan driver jwt dari library Tymon
+        'driver' => 'token', // Kita menggunakan driver jwt dari library Tymon
         'provider' => 'users',
+        'storage_key' => 'api_token', // Kolom di tabel users untuk menyimpan token
     ],
 ],
 
