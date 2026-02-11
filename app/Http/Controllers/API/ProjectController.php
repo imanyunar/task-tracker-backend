@@ -81,7 +81,7 @@ class ProjectController extends Controller
 }
 }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $user = $request->user();
         if($user->role->name === 'employee'){
@@ -127,8 +127,9 @@ class ProjectController extends Controller
     }
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        $user = $request->user();
         if($user->role->name === 'employee'){
             return response()->json([
                 'success' => false,
@@ -142,5 +143,18 @@ class ProjectController extends Controller
         return response()->json(['success' => true, 'message' => 'Project Berhasil Dihapus'], 200);
     }
 }
+    public function search(Request $request){
+        $user = $request->user();
+        $katakunci= $request->input('search', '');
+        $query = Project::where('name', 'ilike', "%$katakunci%");
+        if($user->role->name === 'employee'){
+            $query->whereHas('members', function($query) use ($user){
+                $query->where('user_id', $user->id);
+            });
+        
+        }
+        $projects = $query->get();
+        return response()->json($projects, 200);
 
+    }
 }

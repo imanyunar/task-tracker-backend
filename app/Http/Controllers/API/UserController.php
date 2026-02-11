@@ -32,7 +32,6 @@ class UserController extends Controller
             'email'         => 'required|string|email|max:255|unique:users',
             'password'      => 'required|string|min:8',
             'department_id' => 'required|exists:departments,id',
-            'role'          => 'required|in:admin,manager,employee',
         ]);
 
         if ($validator->fails()) {
@@ -44,7 +43,7 @@ class UserController extends Controller
             'email'         => $request->email,
             'password'      => Hash::make($request->password), // Password WAJIB di-hash
             'department_id' => $request->department_id,
-            'role'          => $request->role,
+            'role'          => 3,
         ]);
 
         return response()->json([

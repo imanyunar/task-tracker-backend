@@ -8,16 +8,21 @@ use App\Http\Controllers\API\DepartmentController;
 use App\Http\Controllers\API\ProjectController;
 use App\Http\Controllers\API\AttendanceController;
 
+Route::get('/register', function () {
+    return response()->file(public_path('register.html'));
+});
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
 Route::middleware('auth')->group(function () {
     Route::apiResource('departments', DepartmentController::class);
     Route::apiResource('users', UserController::class);
+    Route::get('projects/search', [ProjectController::class, 'search']);
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('tasks', TaskController::class);
     Route::apiResource('attendances', AttendanceController::class);
     Route::post('projects/{id}/add-member', [ProjectController::class, 'addMember']); 
     Route::post('logout', [AuthController::class, 'logout']);
+    
 });
 
