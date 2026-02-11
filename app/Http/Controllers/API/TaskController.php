@@ -14,8 +14,8 @@ class TaskController extends Controller
         $user = $request->user();
         $query = Task::with(['project']);
         if ($user->role_id == 3){
-            $tasks = $query->whereHas('project.members', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
+            $tasks = $query->whereHas('project.members', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
             })->get();
 
         }else{
