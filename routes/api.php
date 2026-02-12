@@ -11,6 +11,9 @@ use App\Http\Controllers\API\AttendanceController;
 Route::get('/register', function () {
     return response()->file(public_path('register.html'));
 });
+Route::get('/login', function () {
+    return response()->file(public_path('login.html'));
+});
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
