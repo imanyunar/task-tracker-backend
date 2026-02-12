@@ -17,10 +17,10 @@ class ProjectController extends Controller
         if($user->role->name === 'employee'){
             $projects = Project::whereHas('members', function($query) use ($user){
                 $query->where('user_id', $user->id);
-            })->get();
+            })->paginate(10);
 
     }   else{
-            $projects = Project::all();
+            $projects = Project::paginate(10);
         }
 
         return response()-> json($projects);
