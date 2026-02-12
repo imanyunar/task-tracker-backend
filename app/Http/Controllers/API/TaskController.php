@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Task;
+use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -97,4 +98,43 @@ class TaskController extends Controller
         ], 200);
     }
 
+    public function tasksByProject(Request $request, $projectId)
+    {
+        $user = $request->user();
+        $task = Task::where('project_id', $projectId);
+        if ($user->role_id == 3) {
+            $isMember = Project::where('id', $projectId)
+                ->whereHas('members', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+           
+            });
+            if (!$isMember->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Akses ditolak'
+                ], 403);
+            }
+          
+        }
+        $taskslist = $task->orderBy('due_date')->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'tasks' => $taskslist
+        ], 200);
+    }
+
+    public function getDashboardStats(Request $request)
+    {
+        $user = $request->user();
+        $projectCount = $user->projects()->count();
+        $taskCountactive = Task::whereHas('project.members', function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })->where('status', '!=', 'done')->count();
+        return response()->json([
+            'success' => true,
+            'project_count' => $projectCount,
+            'task_count_active' => $taskCountactive
+        ], 200);
+    }
 }

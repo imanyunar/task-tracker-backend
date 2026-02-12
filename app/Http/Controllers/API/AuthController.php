@@ -88,4 +88,17 @@ class AuthController extends Controller
             
         }
    }
+   
+   public function userProfile(Request $request)
+   {
+
+       $user = $request->user()->load('department', 'role');
+
+       return response()->json([
+           'success' => true,
+           'user' => $user,
+       ], 200);
+        
+        
+   }
 }
