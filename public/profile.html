@@ -16,63 +16,54 @@
         .nav-item:hover:not(.active-link) { background-color: rgba(255, 255, 255, 0.05); color: white; }
     </style>
 </head>
-<body class="bg-[#f8fafc] text-blue-900">
+<body class="bg-[#f8fafc] text-slate-900">
 
-    <div class="flex min-h-screen">
+   <div class="flex min-h-screen">
         <aside class="w-64 sidebar-gradient text-white flex flex-col fixed h-full z-50 shadow-2xl">
             <div class="p-8">
                 <div class="flex items-center space-x-3">
-                    <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <div class="h-10 w-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
                         <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
-                    <div>
-                        <h1 class="text-xl font-extrabold tracking-tight uppercase text-blue-400">PT TAS</h1>
-                    </div>
+                    <h1 class="text-xl font-extrabold tracking-tight uppercase text-blue-400">PT TAS</h1>
                 </div>
             </div>
 
-            <nav class="flex-1 px-4 space-y-2 mt-4 text-sm">
-                <p class="px-4 text-[10px] font-black text-blue-500/50 uppercase tracking-widest mb-4">Navigasi Utama</p>
-                
-                <a href="dashboard.html" class="nav-item flex items-center space-x-3 p-3 text-blue-300 hover:text-white rounded-xl transition-all group">
+            <nav class="flex-1 px-4 space-y-2 mt-4">
+                <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Navigasi Utama</p>
+                <a href="dashboard.html" class="nav-item flex items-center space-x-3 p-3 text-slate-400 rounded-xl transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span>Dashboard</span>
                 </a>
-
-                <a href="projects.html" class="nav-item flex items-center space-x-3 p-3 text-blue-300 hover:text-white rounded-xl transition-all group">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <a href="projects.html" class="flex items-center space-x-3 p-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition-all group">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span>Daftar Projek</span>
                 </a>
-
-                <a href="tasks.html" class="nav-item flex items-center space-x-3 p-3 text-blue-300 hover:text-white rounded-xl transition-all group">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span>Daftar Task</span>
-                </a>
-
-                <a href="profile.html" class="flex items-center space-x-3 p-3 active-link rounded-xl transition-all">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+               
+                <a href="profile.html" class="nav-item active-link  flex items-center space-x-3 p-3 text-slate-400 rounded-xl transition-all group">
+                    <svg class="w-5 h-5 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span>Profil Saya</span>
                 </a>
             </nav>
 
             <div class="p-6">
-                <button id="logout-btn" class="flex items-center justify-center space-x-3 p-4 w-full bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-2xl font-bold transition-all">
+                <button id="logout-btn" class="flex items-center space-x-3 p-4 w-full bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-2xl font-bold transition-all">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    <span>Keluar Sesi</span>
+                    <span>Logout</span>
                 </button>
             </div>
         </aside>
 
         <div class="flex-1 ml-64 flex flex-col">
-            <header class="glass border-b border-blue-100 sticky top-0 z-40 px-10 py-5 flex justify-between items-center">
+             <header class="glass border-b border-blue-100 sticky top-0 z-40 px-10 py-5 flex justify-between items-center">
                 <h2 class="text-lg font-bold text-blue-800">Identitas Pegawai</h2>
-                <div class="flex items-center space-x-4">
+                <a href="profile.html" class="flex items-center space-x-3 hover:opacity-80 transition-all">
                     <div class="text-right">
-                        <p id="nav-user-name" class="text-sm font-bold text-blue-900">Memuat...</p>
-                        <p id="nav-user-dept" class="text-[10px] text-blue-600 font-extrabold uppercase">Memuat...</p>
+                        <p id="nav-user-name" class="text-sm font-bold text-blue-800">Loading...</p>
+                        <p id="nav-user-dept" class="text-[10px] text-blue-600 font-black uppercase tracking-widest">...</p>
                     </div>
                     <div id="nav-initial" class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-200">?</div>
-                </div>
+                </a>
             </header>
 
             <main class="p-10 max-w-4xl mx-auto w-full">

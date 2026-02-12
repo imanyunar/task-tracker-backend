@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Tugas - PT TAS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); }
+        .active-link { background: linear-gradient(90deg, #2563eb 0%, #4f46e5 100%); color: white !important; font-weight: bold; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+        .nav-item:hover:not(.active-link) { background-color: rgba(255, 255, 255, 0.05); color: white; }
+        .project-bubble:hover { transform: translateY(-5px); border-color: #2563eb; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-blue-900">
+
+    <div class="flex min-h-screen">
+        <aside class="w-64 sidebar-gradient text-white flex flex-col fixed h-full z-50 shadow-2xl">
+            <div class="p-8 mb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h1 class="text-xl font-black tracking-tighter uppercase text-blue-400">PT TAS</h1>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-2 mt-4 text-sm">
+                <p class="px-4 text-[10px] font-black text-blue-500/40 uppercase tracking-widest mb-4">Navigasi Utama</p>
+                <a href="dashboard.html" class="nav-item flex items-center space-x-3 p-3 text-blue-300 hover:text-white rounded-xl transition-all"><span>Dashboard</span></a>
+                <a href="projects.html" class="nav-item flex items-center space-x-3 p-3 text-blue-300 hover:text-white rounded-xl transition-all"><span>Daftar Projek</span></a>
+                <a href="tasks.html" class="nav-item active-link flex items-center space-x-3 p-3 rounded-xl transition-all"><span>Daftar Task</span></a>
+                <a href="profile.html" class="nav-item flex items-center space-x-3 p-3 text-blue-300 hover:text-white rounded-xl transition-all"><span>Profil Saya</span></a>
+            </nav>
+
+            <div class="p-6">
+                <button id="logout-btn" class="flex items-center space-x-3 p-4 w-full bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white rounded-2xl font-bold transition-all"><span>Logout</span></button>
+            </div>
+        </aside>
+
+        <div class="flex-1 ml-64 flex flex-col">
+            <header class="glass border-b border-blue-100 sticky top-0 z-40 px-10 py-5 flex justify-between items-center">
+                <h2 id="page-title" class="text-lg font-bold text-blue-800 italic">Daftar Tugas</h2>
+                <div class="flex items-center space-x-4">
+                    <div class="text-right">
+                        <p id="nav-user-name" class="text-sm font-bold text-blue-900">Loading...</p>
+                        <p id="nav-user-dept" class="text-[10px] text-blue-600 font-extrabold uppercase">...</p>
+                    </div>
+                    <div id="nav-initial" class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg">?</div>
+                </div>
+            </header>
+
+            <main class="p-10 max-w-7xl">
+                <section id="project-selector-section">
+                    <div class="text-center mb-12">
+                        <h3 class="text-3xl font-black text-blue-900 tracking-tight italic uppercase">Pilih Projek</h3>
+                        <p class="text-blue-500 mt-2 font-medium">Klik pada salah satu projek di bawah untuk melihat rincian tugas.</p>
+                    </div>
+                    <div id="project-bubble-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        </div>
+                    <div id="project-pagination" class="flex justify-center space-x-3 mt-12 pt-8 border-t border-blue-50"></div>
+                </section>
+
+                <section id="task-view-section" class="hidden">
+                    <div class="flex justify-between items-end mb-8">
+                        <div>
+                            <button onclick="resetToProjects()" class="text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] hover:underline mb-2 block">&larr; Kembali ke Pilihan Projek</button>
+                            <h2 id="current-project-name" class="text-4xl font-black text-blue-900 tracking-tighter italic">Nama Projek</h2>
+                        </div>
+                        <span id="task-count-badge" class="bg-blue-600 text-white px-5 py-2 rounded-2xl font-black text-xs shadow-lg shadow-blue-200">0 Tugas</span>
+                    </div>
+
+                    <div class="bg-white rounded-[2.5rem] border border-blue-100 shadow-sm overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-blue-50/50 text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] border-b border-blue-100">
+                                    <th class="p-8">Detail Tugas</th>
+                                    <th class="p-8 text-center">Batas Waktu</th>
+                                    <th class="p-8 text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="task-list-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script src="/js/tasks.js"></script>
+</body>
+</html>

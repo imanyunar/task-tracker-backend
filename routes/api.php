@@ -26,6 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/search', [ProjectController::class, 'search']);
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('tasks', TaskController::class);
+    Route::get('projects/{projectId}/tasks', [TaskController::class, 'tasksByProject']);
     Route::apiResource('attendances', AttendanceController::class);
     Route::post('projects/{id}/add-member', [ProjectController::class, 'addMember']); 
     Route::post('logout', [AuthController::class, 'logout']);
