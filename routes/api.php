@@ -21,13 +21,15 @@ Route::post('login', [AuthController::class, 'login']);
 Route::middleware('auth')->group(function () {
     Route::get('profile', [ProfileController::class, 'show']);
     Route::get('dashboard/stats', [TaskController::class, 'getDashboardStats']);
+    Route::get('/tasks', function () {
+    return response()->file(public_path('tasks.html'));
+});
     Route::apiResource('departments', DepartmentController::class);
     Route::apiResource('users', UserController::class);
     Route::get('projects/search', [ProjectController::class, 'search']);
     Route::apiResource('projects', ProjectController::class);
     Route::apiResource('tasks', TaskController::class);
     Route::get('projects/{projectId}/tasks', [TaskController::class, 'tasksByProject']);
-    Route::apiResource('attendances', AttendanceController::class);
     Route::post('projects/{id}/add-member', [ProjectController::class, 'addMember']); 
     Route::post('logout', [AuthController::class, 'logout']);
     
