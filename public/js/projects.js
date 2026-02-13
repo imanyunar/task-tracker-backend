@@ -1,129 +1,277 @@
 /**
- * KONFIGURASI API & TOKEN
+ * /js/projects.js
+ * Integrasi penuh dengan ProjectController, UserController, dan ProfileController
  */
+
 const API_URL = 'http://localhost:8000/api';
 const token = localStorage.getItem('api_token');
 
+// Proteksi Halaman
 if (!token) window.location.href = 'login.html';
 
+// Global Header untuk semua request
 $.ajaxSetup({
-    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+    headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+    }
 });
 
+let currentRole = '';
+
 $(document).ready(function() {
-    fetchProfile();
-    loadProjects();
+    initPage();
 
-    // Event Logout
-    $('#logout-btn').on('click', function() {
-        localStorage.removeItem('api_token');
-        window.location.href = 'login.html';
-    });
-
-    // Debounced Search
+    // Event Pencarian Dinamis
     let searchTimer;
-    $('#search-input').on('input', function() {
+    $('#search-input').on('keyup', function() {
         clearTimeout(searchTimer);
         const query = $(this).val();
         searchTimer = setTimeout(() => {
-            query.length > 0 ? searchProjects(query) : loadProjects();
+            fetchProjects(1, query);
         }, 500);
+    });
+
+    // Event Submit Form Projek (Tambah/Edit)
+    $('#form-project').submit(handleProjectSubmit);
+
+    // Event Submit Tambah Anggota Tim
+    $('#form-add-member').submit(handleAddMember);
+
+    // Logout
+    $('#logout-btn').click(() => {
+        localStorage.clear();
+        window.location.href = 'login.html';
     });
 });
 
 /**
- * FETCH PROFILE
+ * 1. INISIALISASI HALAMAN & CEK ROLE
  */
-function fetchProfile() {
-    $.get(`${API_URL}/profile`, function(res) {
-        const user = res.data || res;
-        $('#user-name').text(user.name);
-        $('#user-dept').text(`${user.department} | ${user.role}`);
-        $('#nav-initial').text(user.name.split(' ').map(n => n[0]).join('').toUpperCase());
-    });
-}
+function initPage() {
+    $.get(`${API_URL}/profile`)
+        .done(function(res) {
+            currentRole = res.data.role.toLowerCase();
+            $('#role-text').text(`Akses: ${res.data.role} | ${res.data.department}`);
 
-/**
- * LOAD SEMUA PROJEK (INDEX - PAGINATED)
- */
-function loadProjects() {
-    $.get(`${API_URL}/projects`, function(res) {
-        // Karena paginate(10), data aslinya ada di res.data
-        renderProjects(res.data || res);
-    });
-}
-
-/**
- * SEARCH PROJEK
- */
-function searchProjects(query) {
-    // Sesuai $request->input('search') di Controller
-    $.get(`${API_URL}/projects/search?search=${query}`, function(res) {
-        // search() mengembalikan collection, data ada di res langsung
-        renderProjects(res.data || res);
-    });
-}
-
-/**
- * RENDER TAMPILAN GRID & TABLE
- */
-function renderProjects(projects) {
-    const $activeGrid = $('#active-projects');
-    const $completedBody = $('#completed-projects-body');
-    
-    let activeHtml = '';
-    let completedHtml = '';
-
-    // Handle jika projects bukan array
-    const dataArray = Array.isArray(projects) ? projects : [];
-
-    const activeList = dataArray.filter(p => p.status !== 'done' && p.status !== 'completed');
-    const completedList = dataArray.filter(p => p.status === 'done' || p.status === 'completed');
-
-    // 1. Render Active Cards
-    if (activeList.length === 0) {
-        activeHtml = '<div class="col-span-full p-12 text-center text-slate-300 bg-white rounded-[2rem] border-2 border-dashed italic">Tidak ada projek berjalan.</div>';
-    } else {
-        activeList.forEach(p => {
-            activeHtml += `
-                <div onclick="window.location.href='tasks.html?project_id=${p.id}'" 
-                     class="p-8 bg-white border border-slate-100 rounded-[2.5rem] cursor-pointer hover:border-blue-500 hover:shadow-2xl transition-all duration-500 group active:scale-95 shadow-sm">
-                    <div class="h-14 w-14 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" stroke-width="2" stroke-linecap="round"/></svg>
-                    </div>
-                    <h4 class="text-xl font-bold text-slate-800 mb-2 leading-tight group-hover:text-blue-600 transition-colors">${p.name}</h4>
-                    <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest bg-blue-50 inline-block px-2 py-1 rounded-md">${p.status}</p>
-                    <div class="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-bold">
-                        <span>Mulai: ${p.start_date}</span>
-                        <span class="text-blue-600">Buka Task &rarr;</span>
-                    </div>
-                </div>`;
+            // Jika bukan Employee, tampilkan fitur Admin
+            if (currentRole !== 'employee') {
+                $('#btn-create-project').removeClass('hidden');
+                $('#admin-team-form').removeClass('hidden');
+                loadUserDropdown(); //
+            }
+            
+            fetchProjects(1);
+        })
+        .fail(() => {
+            localStorage.clear();
+            window.location.href = 'login.html';
         });
-    }
-    $activeGrid.html(activeHtml);
+}
 
-    // 2. Render Completed Table
-    if (completedList.length === 0) {
-        completedHtml = '<tr><td colspan="3" class="p-16 text-center text-slate-300 italic">Belum ada histori projek.</td></tr>';
-    } else {
-        completedList.forEach(p => {
-            completedHtml += `
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+/**
+ * 2. AMBIL DATA PROJEK (INDEX & SEARCH)
+ */
+function fetchProjects(page = 1, search = '') {
+    const endpoint = search 
+        ? `${API_URL}/projects/search?search=${search}` 
+        : `${API_URL}/projects?page=${page}`;
+
+    $.get(endpoint, function(res) {
+        const $list = $('#project-list');
+        $list.empty();
+
+        // Data dari Laravel paginate() berada di properti 'data'
+        const projects = res.data || res;
+
+        if (projects.length === 0) {
+            $list.html('<tr><td colspan="3" class="p-10 text-center italic text-slate-400 font-bold">Data tidak ditemukan.</td></tr>');
+            return;
+        }
+
+        projects.forEach(p => {
+            const isAdmin = currentRole !== 'employee';
+            const buttons = `
+                <div class="flex justify-end items-center space-x-2">
+                    <button onclick="viewTeam(${p.id})" class="bg-slate-800 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase">Tim</button>
+                    <button onclick="window.location.href='tasks.html?project_id=${p.id}'" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-blue-200">Tugas</button>
+                    ${isAdmin ? `
+                        <button onclick="openEditModal(${p.id})" class="bg-amber-500 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-amber-200">Edit</button>
+                        <button onclick="deleteProject(${p.id})" class="bg-red-600 text-white px-3 py-2 rounded-xl text-[10px] font-black uppercase shadow-lg shadow-red-200">Hapus</button>
+                    ` : ''}
+                </div>
+            `;
+
+            $list.append(`
+                <tr class="hover:bg-slate-50 transition-colors">
                     <td class="p-8">
-                        <p class="font-bold text-slate-800 text-lg group-hover:text-blue-600 transition-colors">${p.name}</p>
-                        <p class="text-[10px] text-emerald-500 font-black uppercase mt-1 tracking-widest">Status: Completed</p>
+                        <p class="text-lg font-black text-slate-800 italic uppercase tracking-tighter">${p.name}</p>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">${p.description || 'N/A'}</p>
                     </td>
-                    <td class="p-8 text-center text-sm text-slate-400 font-bold font-mono">
-                        ${p.end_date}
+                    <td class="p-8 text-center">
+                        <span class="text-xs font-black text-slate-500 bg-slate-100 px-3 py-1 rounded-md">${p.start_date}</span>
+                        <span class="mx-2 text-slate-300">&rarr;</span>
+                        <span class="text-xs font-black text-slate-500 bg-slate-100 px-3 py-1 rounded-md">${p.end_date}</span>
                     </td>
-                    <td class="p-8 text-right">
-                        <button onclick="window.location.href='tasks.html?project_id=${p.id}'" 
-                                class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] border border-blue-100 px-4 py-2 rounded-xl hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                            Buka Laporan
-                        </button>
-                    </td>
-                </tr>`;
+                    <td class="p-8 text-right">${buttons}</td>
+                </tr>
+            `);
         });
-    }
-    $completedBody.html(completedHtml);
+
+        if (!search && res.links) renderPagination(res);
+        else $('#pagination-container').empty();
+    });
+}
+
+/**
+ * 3. MANAJEMEN CRUD PROJEK
+ */
+function openCreateModal() {
+    $('#form-project')[0].reset();
+    $('#project-id').val('');
+    $('#modal-title').text('Buat Projek Baru');
+    $('#modal-project').removeClass('hidden');
+}
+
+function openEditModal(id) {
+    $.get(`${API_URL}/projects/${id}`, function(res) {
+        const p = res.data;
+        $('#project-id').val(p.id);
+        $('#project-name').val(p.name);
+        $('#project-desc').val(p.description);
+        $('#project-start').val(p.start_date);
+        $('#project-end').val(p.end_date);
+        $('#modal-title').text('Edit Projek');
+        $('#modal-project').removeClass('hidden');
+    });
+}
+
+function handleProjectSubmit(e) {
+    e.preventDefault();
+    const id = $('#project-id').val();
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_URL}/projects/${id}` : `${API_URL}/projects`;
+    
+    const data = {
+        name: $('#project-name').val(),
+        description: $('#project-desc').val(),
+        start_date: $('#project-start').val(),
+        end_date: $('#project-end').val()
+    };
+
+    $.ajax({
+        url: url,
+        method: method,
+        data: data,
+        success: function() {
+            $('#modal-project').addClass('hidden');
+            Swal.fire('Berhasil!', 'Data projek telah diperbarui.', 'success');
+            fetchProjects(1);
+        },
+        error: function(xhr) {
+            Swal.fire('Gagal', xhr.status === 422 ? Object.values(xhr.responseJSON)[0][0] : 'Error sistem', 'error');
+        }
+    });
+}
+
+function deleteProject(id) {
+    Swal.fire({
+        title: 'Hapus Projek?',
+        text: "Seluruh tugas terkait akan ikut terhapus!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Ya, Hapus'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `${API_URL}/projects/${id}`,
+                method: 'DELETE',
+                success: () => {
+                    Swal.fire('Berhasil!', 'Projek telah dihapus.', 'success');
+                    fetchProjects(1);
+                }
+            });
+        }
+    });
+}
+
+/**
+ * 4. MANAJEMEN TIM (Relasi Pivot)
+ */
+function viewTeam(id) {
+    $('#member-project-id').val(id);
+    const $teamList = $('#team-list');
+    $teamList.html('<p class="text-sm text-slate-400">Memuat tim...</p>');
+    $('#modal-team').removeClass('hidden');
+
+    $.get(`${API_URL}/projects/${id}`, function(res) {
+        // Asumsi relasi 'members' dimuat di backend
+        const members = res.data.members || [];
+        $teamList.empty();
+
+        if (members.length === 0) {
+            $teamList.append('<p class="text-xs font-bold text-slate-400 italic uppercase">Belum ada anggota tim.</p>');
+        } else {
+            members.forEach(m => {
+                $teamList.append(`
+                    <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                        <div>
+                            <p class="text-sm font-black text-slate-800 uppercase italic">${m.name}</p>
+                            <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">${m.pivot.role_in_project}</p>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+    });
+}
+
+function loadUserDropdown() {
+    $.get(`${API_URL}/users`, function(users) {
+        users.forEach(u => {
+            $('#select-user').append(`<option value="${u.id}">${u.name}</option>`);
+        });
+    });
+}
+
+function handleAddMember(e) {
+    e.preventDefault();
+    const projectId = $('#member-project-id').val();
+    const payload = {
+        user_id: $('#select-user').val(),
+        role: $('#member-role').val()
+    };
+
+    $.post(`${API_URL}/projects/${projectId}/add-member`, payload)
+        .done(() => {
+            Swal.fire('Berhasil!', 'Anggota tim baru ditambahkan.', 'success');
+            viewTeam(projectId); // Refresh list anggota
+            $('#form-add-member')[0].reset();
+        })
+        .fail(xhr => Swal.fire('Gagal', xhr.responseJSON.message, 'error'));
+}
+
+/**
+ * 5. UTILITY (Pagination & Modal)
+ */
+function renderPagination(res) {
+    const $container = $('#pagination-container');
+    $container.empty();
+    res.links.forEach(link => {
+        const isActive = link.active ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-slate-400 hover:bg-slate-100';
+        const pageNum = link.url ? new URL(link.url).searchParams.get('page') : null;
+        
+        if (pageNum) {
+            $container.append(`
+                <button onclick="fetchProjects(${pageNum})" class="h-10 w-10 rounded-xl font-black text-xs transition-all ${isActive}">
+                    ${link.label.replace('&laquo; Previous', '<').replace('Next &raquo;', '>')}
+                </button>
+            `);
+        }
+    });
+}
+
+function closeProjectModal() {
+    $('#modal-project').addClass('hidden');
 }

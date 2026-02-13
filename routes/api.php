@@ -18,6 +18,7 @@ Route::get('/login', function () {
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
+
 Route::middleware('auth')->group(function () {
     Route::get('profile', [ProfileController::class, 'show']);
     Route::get('dashboard/stats', [TaskController::class, 'getDashboardStats']);

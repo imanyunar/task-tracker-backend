@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detail Tugas</title>
+    <title>Detail Tugas - PT TAS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,7 +21,7 @@
                 <div class="h-11 w-11 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
-                <h1 class="text-2xl font-black uppercase tracking-tighter text-blue-600 italic">Task Tracker</h1>
+                <h1 class="text-2xl font-black uppercase tracking-tighter text-blue-600 italic">PT TAS</h1>
             </div>
 
             <div class="flex items-center space-x-6">
@@ -30,9 +30,6 @@
                     <p id="nav-user-dept" class="text-[10px] text-blue-500 font-extrabold uppercase tracking-widest">...</p>
                 </div>
                 <div id="nav-initial" class="h-11 w-11 bg-blue-900 rounded-2xl flex items-center justify-center text-white font-black shadow-xl border-2 border-white">?</div>
-                <button id="logout-btn" class="p-3 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl transition-all shadow-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                </button>
             </div>
         </div>
     </header>
@@ -42,13 +39,10 @@
         <section id="task-view-section">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 space-y-6 md:space-y-0">
                 <div>
-                    <button onclick="window.location.href='projects.html'" class="group flex items-center text-blue-600 text-xs font-black uppercase tracking-widest hover:text-blue-900 transition-colors mb-6 bg-blue-50 px-6 py-3 rounded-2xl">
-                        <span class="mr-2 group-hover:-translate-x-1 transition-transform">&larr;</span> Kembali ke Daftar Projek
-                    </button>
-                    
                     <h2 id="current-project-name" class="text-5xl font-black text-blue-900 tracking-tighter italic uppercase">
                         Memuat...
                     </h2>
+                    <p class="text-slate-500 mt-2 font-medium">Daftar tugas untuk proyek ini.</p>
                 </div>
                 <div id="task-count-badge" class="bg-blue-600 text-white px-8 py-3 rounded-[2rem] font-black text-xs shadow-2xl shadow-blue-300 tracking-widest uppercase">
                     0 TUGAS DITEMUKAN
@@ -62,7 +56,7 @@
                             <tr class="bg-blue-50/50 text-[11px] text-blue-600 font-black uppercase tracking-[0.2em] border-b border-blue-100">
                                 <th class="p-10">Informasi Tugas</th>
                                 <th class="p-10 text-center">Deadline</th>
-                                <th class="p-10 text-right">Progres</th>
+                                <th class="p-10 text-right">Progres / Status</th>
                             </tr>
                         </thead>
                         <tbody id="task-list-body" class="divide-y divide-blue-50">

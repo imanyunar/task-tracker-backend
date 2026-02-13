@@ -124,17 +124,27 @@ class TaskController extends Controller
         ], 200);
     }
 
-    public function getDashboardStats(Request $request)
-    {
-        $user = $request->user();
+   public function getDashboardStats(Request $request)
+{
+    $user = $request->user();
+    
+    // Periksa apakah user adalah Employee (role_id 3)
+    if ($user->role_id == 3) {
+        // Hitung proyek dan tugas yang diikutinya saja
         $projectCount = $user->projects()->count();
         $taskCountactive = Task::whereHas('project.members', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })->where('status', '!=', 'done')->count();
-        return response()->json([
-            'success' => true,
-            'project_count' => $projectCount,
-            'task_count_active' => $taskCountactive
-        ], 200);
+    } else {
+        // Jika Admin/Manager, hitung TOTAL keseluruhan di database
+        $projectCount = Project::count();
+        $taskCountactive = Task::where('status', '!=', 'done')->count();
     }
+
+    return response()->json([
+        'success' => true,
+        'project_count' => $projectCount,
+        'task_count_active' => $taskCountactive
+    ], 200);
+}
 }

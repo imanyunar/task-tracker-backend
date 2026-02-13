@@ -1,55 +1,65 @@
+/**
+ * /js/login.js 
+ * Integrasi dengan AuthController@login
+ */
+
+const API_URL = 'http://localhost:8000/api';
+
 $(document).ready(function() {
-    $('#loginForm').on('submit', function(e) {
+    // Jika token sudah ada, langsung arahkan ke dashboard
+    if (localStorage.getItem('api_token')) {
+        window.location.href = 'dashboard.html';
+    }
+
+    // Handle pengiriman form login
+    $('#login-form').on('submit', function(e) {
         e.preventDefault();
-
-        const $btn = $('#btnSubmit');
-        const $msg = $('#msg');
-
-        $btn.html('<svg class="animate-spin h-5 w-5 text-white" ...></svg>').prop('disabled', true);
-        $msg.addClass('hidden').removeClass('bg-green-50 text-green-700 border-green-100 bg-red-50 text-red-700 border-red-100');
-
+        
         const payload = {
             email: $('#email').val(),
             password: $('#password').val()
         };
 
-        $.ajax({
-            url: '/api/login',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(payload),
-            success: function(res) {
-                localStorage.setItem('api_token', res.api_token);
-                localStorage.setItem('user_name', res.user.name);
-                localStorage.setItem('role_id', res.user.role_id);
+        // Indikator loading menggunakan SweetAlert2
+        Swal.fire({
+            title: 'Memverifikasi...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
 
-                $msg.removeClass('hidden')
-                    .addClass('bg-green-50 text-green-700 border-green-100')
-                    .text('Login Berhasil! Mengalihkan...');
+        // Mengirim data ke AuthController@login
+        $.post(`${API_URL}/login`, payload)
+            .done(function(res) {
+                // Berhasil: Simpan api_token yang dihasilkan Str::random(60)
+                localStorage.setItem('api_token', res.api_token);
+                localStorage.setItem('user_data', JSON.stringify(res.user));
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil Masuk!',
+                    text: 'Membuka dashboard Anda...',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = 'dashboard.html';
+                });
+            })
+            .fail(function(xhr) {
+                let errorMessage = 'Gagal terhubung ke server.';
                 
-                // Redirect berdasarkan Role
-                setTimeout(() => {
-                    if (res.user.role_id == 1) {
-                        window.location.href = '/admin-dashboard.html';
-                    } else {
-                        window.location.href = '/dashboard.html';
-                    }
-                }, 1500);
-            },
-            error: function(xhr) {
-                let errorMsg = "Email atau Password salah.";
-                if (xhr.status === 422) {
-                    errorMsg = Object.values(xhr.responseJSON)[0][0];
-                } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
+                // Menangkap pesan "Email atau password salah" dari backend
+                if (xhr.status === 401) {
+                    errorMessage = xhr.responseJSON.message; 
+                } else if (xhr.status === 422) {
+                    const errors = xhr.responseJSON;
+                    errorMessage = Object.values(errors)[0][0];
                 }
 
-                $msg.removeClass('hidden')
-                    .addClass('bg-red-50 text-red-700 border-red-100')
-                    .text(errorMsg);
-                
-                $btn.html('<span>Masuk Sekarang</span>').prop('disabled', false);
-            }
-        });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Login Gagal',
+                    text: errorMessage
+                });
+            });
     });
 });
