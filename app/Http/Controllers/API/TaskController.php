@@ -36,6 +36,7 @@ class TaskController extends Controller
         }else{ 
             $validator = Validator::make($request->all(), [
             'project_id' => 'required|exists:projects,id',
+            'user_id' => 'required|exists:users,id',
             'title' => 'required|string',
             'description' => 'nullable|string',
             'priority' => 'required|in:low,medium,high,urgent',

@@ -1,70 +1,109 @@
 /**
- * /js/dashboard.js
+ * dashboard.js
+ * Updated untuk AuthController
  */
 
 const API_URL = 'http://localhost:8000/api';
 const token = localStorage.getItem('api_token');
 
-// Cek Sesi
-if (!token) window.location.href = 'login.html';
+console.log('🚀 Dashboard loaded');
+console.log('🎫 Token:', token ? token.substring(0, 20) + '...' : 'NONE');
 
-$(document).ready(function() {
-    $.ajaxSetup({
-        headers: {
-            'Authorization': 'Bearer ' + token,
-            'Accept': 'application/json'
-        }
-    });
+if (!token) {
+    console.log('❌ No token, redirecting...');
+    window.location.href = '/api/login';
+    throw new Error('No token');
+}
 
-    initDashboard();
-
-    // Event Logout
-    $('#logout-btn').click(handleLogout);
+$.ajaxSetup({
+    headers: { 
+        'Authorization': `Bearer ${token}`, 
+        'Accept': 'application/json' 
+    }
 });
 
-function initDashboard() {
-    // 1. Ambil Profil User
-    $.get(`${API_URL}/profile`)
-        .done(function(res) {
-            const user = res.data; //
-            $('#user-name-header').text(user.name + " | " + user.department);
-            $('#user-role-badge').text(user.role);
-            $('#welcome-text').text(`Halo, ${user.name.split(' ')[0]}!`);
-        })
-        .fail(function(xhr) {
+$(document).ready(function() {
+    console.log('📊 Loading data...');
+
+    // GET PROFILE - AuthController::userProfile
+    $.ajax({
+        url: `${API_URL}/profile`,
+        method: 'GET',
+        success: function(res) {
+            console.log('✅ Profile:', res);
+            
+            // AuthController return: {success: true, user: {...}}
+            const userData = res.user || res.data || res;
+            const userName = userData.name || 'User';
+            const userRole = userData.role?.name || userData.role || 'Member';
+            
+            $('#user-welcome').text(`Halo, ${userName} (${userRole})`);
+        },
+        error: function(xhr) {
+            console.error('❌ Profile failed:', xhr.status, xhr.responseJSON);
+            
             if (xhr.status === 401) {
-                localStorage.clear();
-                window.location.href = 'login.html';
-            }
-        });
-
-    // 2. Ambil Statistik Dashboard
-    $.get(`${API_URL}/dashboard/stats`)
-        .done(function(res) {
-            if (res.success) {
-                $('#stat-projects').text(res.project_count);
-                $('#stat-tasks').text(res.task_count_active);
-            }
-        });
-}
-
-function handleLogout() {
-    Swal.fire({
-        title: 'Keluar Sistem?',
-        text: 'Sesi Anda akan dihapus.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc2626', // Merah Solid
-        cancelButtonColor: '#475569',
-        confirmButtonText: 'Ya, Logout',
-        cancelButtonText: 'Batal'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post(`${API_URL}/logout`)
-                .always(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Sesi Berakhir',
+                    text: 'Token tidak valid. Login kembali.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
                     localStorage.clear();
-                    window.location.href = 'login.html';
+                    window.location.href = '/api/login';
                 });
+            } else {
+                $('#user-welcome').text('Error: ' + (xhr.responseJSON?.message || 'Gagal load'));
+            }
         }
     });
-}
+
+    // GET DASHBOARD STATS
+    $.ajax({
+        url: `${API_URL}/dashboard-stats`,
+        method: 'GET',
+        success: function(res) {
+            console.log('✅ Stats:', res);
+            
+            const stats = res.data || res;
+            $('#stat-projects').text(stats.project_count || 0);
+            $('#stat-tasks').text(stats.task_count_active || stats.task_count || 0);
+        },
+        error: function(xhr) {
+            console.error('❌ Stats failed:', xhr.status);
+            
+            if (xhr.status === 401) {
+                localStorage.clear();
+                window.location.href = '/api/login';
+            } else {
+                $('#stat-projects').text('N/A');
+                $('#stat-tasks').text('N/A');
+            }
+        }
+    });
+
+    // LOGOUT
+    $('#logout-btn').click(function() {
+        Swal.fire({
+            title: 'Keluar?',
+            text: 'Yakin keluar?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: `${API_URL}/logout`,
+                    method: 'POST',
+                    complete: function() {
+                        localStorage.clear();
+                        window.location.href = '/api/login';
+                    }
+                });
+            }
+        });
+    });
+});

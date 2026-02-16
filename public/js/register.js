@@ -1,51 +1,65 @@
-/**
- * /js/register.js
- */
+$(document).ready(function () {
 
-const API_URL = 'http://localhost:8000/api';
+    const API_URL = "http://localhost:8000/api";
 
-$(document).ready(function() {
-    $('#register-form').on('submit', function(e) {
+    $("#registerForm").submit(function (e) {
         e.preventDefault();
-        
-        // Data diambil langsung dari form (department akan berupa angka 1, 2, atau 3)
-        const payload = {
-            name: $('#name').val(),
-            email: $('#email').val(),
-            password: $('#password').val(),
-            department: $('#department').val() 
+
+        $("#message")
+            .removeClass("text-red-500 text-green-500")
+            .addClass("text-slate-500")
+            .text("Processing...");
+
+        $("#btnRegister").prop("disabled", true).text("Registering...");
+
+        const data = {
+            name: $("#name").val(),
+            email: $("#email").val(),
+            password: $("#password").val(),
+            password_confirmation: $("#password_confirmation").val()
         };
 
-        Swal.fire({
-            title: 'Memproses...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
+        $.ajax({
+            url: API_URL + "/register",
+            method: "POST",
+            data: data,
 
-        // Mengirim data ke AuthController@register
-        $.post(`${API_URL}/register`, payload)
-            .done(function(res) {
-                // Simpan token untuk sesi dashboard
-                localStorage.setItem('api_token', res.api_token);
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: 'Akun pendaftaran Anda sukses.',
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    window.location.href = 'dashboard.html';
-                });
-            })
-            .fail(function(xhr) {
-                let errorMsg = 'Gagal mendaftar.';
-                // Menangkap error validasi seperti email sudah terdaftar
-                if (xhr.status === 422) {
-                    const errors = xhr.responseJSON;
-                    errorMsg = Object.values(errors)[0][0]; 
+            success: function (res) {
+
+                $("#message")
+                    .removeClass("text-slate-500 text-red-500")
+                    .addClass("text-green-500")
+                    .text("Register successful! Redirecting...");
+
+                setTimeout(() => {
+                    window.location.href = "/api/login";
+                }, 1500);
+            },
+
+            error: function (xhr) {
+
+                let msg = "Registration failed";
+
+                if (xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        msg = Object.values(xhr.responseJSON.errors)
+                            .flat()
+                            .join(", ");
+                    } else if (xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
                 }
-                Swal.fire('Gagal', errorMsg, 'error');
-            });
+
+                $("#message")
+                    .removeClass("text-slate-500 text-green-500")
+                    .addClass("text-red-500")
+                    .text(msg);
+
+                $("#btnRegister")
+                    .prop("disabled", false)
+                    .text("Register");
+            }
+        });
     });
+
 });

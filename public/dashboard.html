@@ -3,90 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Utama - PT TAS</title>
+    <title>Dashboard - PT TAS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .sidebar-dark { background-color: #0f172a; }
-        /* Tombol navigasi aktif dengan warna solid */
-        .nav-active { background-color: #2563eb; color: white !important; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
+        .nav-active { background-color: #2563eb !important; color: white !important; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); }
         .nav-item:hover:not(.nav-active) { background-color: #1e293b; color: white; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+<body class="text-slate-900 min-h-screen flex">
 
-    <aside class="w-64 sidebar-dark text-slate-400 flex flex-col fixed h-full z-50">
-        <div class="p-8">
-            <div class="flex items-center space-x-3">
-                <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                </div>
-                <h1 class="text-xl font-extrabold italic uppercase text-white tracking-tighter">PT TAS</h1>
+    <!-- SIDEBAR -->
+    <aside class="w-64 sidebar-dark text-slate-400 flex flex-col fixed h-full z-50 shadow-2xl">
+        <div class="p-8 flex items-center space-x-3">
+            <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
             </div>
+            <h1 class="text-xl font-extrabold italic uppercase text-white tracking-tighter">PT TAS</h1>
         </div>
 
         <nav class="flex-1 px-4 mt-4 space-y-2">
-            <a href="dashboard.html" class="nav-item nav-active flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <a href="/api/dashboard" class="nav-item nav-active flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
                 <span>Dashboard</span>
             </a>
-            <a href="projects.html" class="nav-item flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span>Daftar Projek</span>
+            
+            <a href="/api/projects" class="nav-item flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <span>Projek</span>
+            </a>
+            
+            <a href="/api/tasks" class="nav-item flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <span>Tugas</span>
             </a>
         </nav>
 
         <div class="p-6">
-            <button id="logout-btn" class="w-full bg-red-600 hover:bg-red-700 text-white p-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-red-900/20 transition-all active:scale-95 flex items-center justify-center space-x-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                <span>Keluar Sistem</span>
+            <button id="logout-btn" class="w-full bg-red-600 hover:bg-red-700 text-white p-4 rounded-2xl font-black text-xs uppercase shadow-lg transition-all">
+                Keluar Sistem
             </button>
         </div>
     </aside>
 
+    <!-- MAIN CONTENT -->
     <div class="flex-1 ml-64 flex flex-col min-h-screen">
+        <!-- HEADER -->
         <header class="bg-white border-b border-slate-200 px-10 py-6 flex justify-between items-center sticky top-0 z-40">
             <div>
-                <h2 class="text-xl font-black text-slate-800 italic uppercase">Halaman Utama</h2>
-                <p id="user-name-header" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Memuat data profil...</p>
-            </div>
-            <div class="flex items-center space-x-3">
-                <div id="user-role-badge" class="px-3 py-1 bg-blue-600 text-white text-[9px] font-black uppercase rounded-lg shadow-md">Staff</div>
+                <h2 class="text-xl font-black text-slate-800 italic uppercase">Dashboard</h2>
+                <p id="user-welcome" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Loading...</p>
             </div>
         </header>
 
-        <main class="p-10 space-y-10">
-            <section class="bg-white p-12 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col md:flex-row items-center justify-between">
-                <div>
-                    <h3 id="welcome-text" class="text-4xl font-black text-slate-800 tracking-tighter italic uppercase mb-2">Selamat Datang!</h3>
-                    <p class="text-slate-400 font-medium max-w-sm">Kelola tugas harian dan pantau perkembangan projek PT TAS melalui satu pintu.</p>
-                </div>
-                <button onclick="window.location.href='projects.html'" class="mt-8 md:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-200 transition-all active:scale-95">
-                    Lihat Projek Saya
-                </button>
-            </section>
-
+        <!-- CONTENT -->
+        <main class="p-10">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-lg flex items-center justify-between group">
-                    <div>
-                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Projek</p>
-                        <h4 id="stat-projects" class="text-6xl font-black text-slate-800 italic">0</h4>
+                <!-- CARD 1: Total Projek -->
+                <div class="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-xl relative overflow-hidden group hover:shadow-2xl transition-shadow">
+                    <div class="absolute top-0 right-0 p-8 opacity-5">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                        </svg>
                     </div>
-                    <div class="h-16 w-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-200">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-width="2"></path></svg>
-                    </div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Projek</p>
+                    <h3 id="stat-projects" class="text-6xl font-black text-slate-800 tracking-tighter">0</h3>
                 </div>
-                <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-lg flex items-center justify-between group">
-                    <div>
-                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Tugas Aktif</p>
-                        <h4 id="stat-tasks" class="text-6xl font-black text-slate-800 italic">0</h4>
+
+                <!-- CARD 2: Tugas Aktif -->
+                <div class="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-xl relative overflow-hidden group hover:shadow-2xl transition-shadow">
+                    <div class="absolute top-0 right-0 p-8 opacity-5">
+                        <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5z"/>
+                        </svg>
                     </div>
-                    <div class="h-16 w-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-width="2"></path></svg>
-                    </div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tugas Aktif</p>
+                    <h3 id="stat-tasks" class="text-6xl font-black text-slate-800 tracking-tighter">0</h3>
                 </div>
             </div>
         </main>

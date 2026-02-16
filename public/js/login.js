@@ -1,65 +1,58 @@
 /**
- * /js/login.js 
- * Integrasi dengan AuthController@login
+ * login.js
+ * Diperbarui untuk mendukung penguncian rute HTML di sisi server
  */
 
 const API_URL = 'http://localhost:8000/api';
 
 $(document).ready(function() {
-    // Jika token sudah ada, langsung arahkan ke dashboard
-    if (localStorage.getItem('api_token')) {
-        window.location.href = 'dashboard.html';
-    }
+    console.log('🚀 Login page loaded');
 
-    // Handle pengiriman form login
     $('#login-form').on('submit', function(e) {
         e.preventDefault();
         
-        const payload = {
-            email: $('#email').val(),
-            password: $('#password').val()
-        };
+        const email = $('#email').val();
+        const password = $('#password').val();
 
-        // Indikator loading menggunakan SweetAlert2
         Swal.fire({
             title: 'Memverifikasi...',
             allowOutsideClick: false,
             didOpen: () => { Swal.showLoading(); }
         });
 
-        // Mengirim data ke AuthController@login
-        $.post(`${API_URL}/login`, payload)
-            .done(function(res) {
-                // Berhasil: Simpan api_token yang dihasilkan Str::random(60)
-                localStorage.setItem('api_token', res.api_token);
-                localStorage.setItem('user_data', JSON.stringify(res.user));
+        $.ajax({
+            url: `${API_URL}/login`,
+            method: 'POST',
+            data: { email, password },
+            success: function(res) {
+                // AuthController mengembalikan 'api_token' (plain)
+                const token = res.api_token;
+                const userData = res.user;
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil Masuk!',
-                    text: 'Membuka dashboard Anda...',
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    window.location.href = 'dashboard.html';
-                });
-            })
-            .fail(function(xhr) {
-                let errorMessage = 'Gagal terhubung ke server.';
-                
-                // Menangkap pesan "Email atau password salah" dari backend
-                if (xhr.status === 401) {
-                    errorMessage = xhr.responseJSON.message; 
-                } else if (xhr.status === 422) {
-                    const errors = xhr.responseJSON;
-                    errorMessage = Object.values(errors)[0][0];
+                if (token) {
+                    // Simpan di localStorage untuk kebutuhan request AJAX berikutnya
+                    localStorage.setItem('api_token', token);
+                    localStorage.setItem('user_data', JSON.stringify(userData));
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Masuk!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        // REDIRECT PENTING:
+                        // Masukkan token ke URL (?token=...) agar middleware 'auth' di Laravel 
+                        // mengizinkan browser memuat file dashboard.html
+                        window.location.href = `/api/dashboard?token=${token}`;
+                    });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Server tidak mengirim token' });
                 }
-
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Login Gagal',
-                    text: errorMessage
-                });
-            });
+            },
+            error: function(xhr) {
+                let message = xhr.responseJSON?.message || 'Email atau password salah';
+                Swal.fire({ icon: 'error', title: 'Login Gagal', text: message });
+            }
+        });
     });
 });

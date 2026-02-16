@@ -60,7 +60,6 @@ class ProjectController extends Controller
     }else{
             $validator = Validator::make($request->all(), [
                 'user_id' => 'required|exists:users,id',
-                'role'    => 'required|string|max:100',
             ]);
 
             if ($validator->fails()) {
@@ -99,6 +98,7 @@ class ProjectController extends Controller
                 return response()->json(['message' => 'Project Tidak Ditemukan'], 404);
             }
         }
+        $project->load('members');
         return response()->json(['success' => true, 'data' => $project], 200);
     }
 

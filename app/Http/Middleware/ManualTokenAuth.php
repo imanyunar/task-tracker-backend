@@ -3,27 +3,47 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class ManualTokenAuth
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        $token = $request->bearerToken();
-        
-        $user = User::where('api_token', hash('sha256', $token))->first();
-        if (!$user) {
-            return response()->json(['message' => 'Token tidak valid'], 401);
-        }
-        auth()->setUser($user);
-        return $next($request);
+        // 1. Ambil token dari Bearer Header (AJAX) 
+        // ATAU dari Query String (?token=...) untuk akses URL langsung
+        $token = $request->bearerToken() ?: $request->query('token');
 
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token tidak disediakan'
+            ], 401);
+        }
+
+        // 2. Hash token yang datang dari user (Plain) menjadi SHA-256
+        // Harus sesuai dengan cara simpan di AuthController
+        $hashedToken = hash('sha256', $token);
+
+        // 3. Cari user berdasarkan hashed token di database
+        $user = User::where('api_token', $hashedToken)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token tidak valid'
+            ], 401);
+        }
+
+        // 4. Daftarkan user ke request agar $request->user() bisa 
+        // dipanggil di Controller manapun
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
+
+        return $next($request);
     }
 }
