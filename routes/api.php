@@ -6,6 +6,7 @@ use App\Http\Controllers\API\TaskController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\DepartmentController;
 use App\Http\Controllers\API\ProjectController;
+use App\Http\Controllers\API\ProfileController;
 
 Route::get('/login', function () {
     return response()->file(public_path('login.html'));
@@ -27,21 +28,22 @@ Route::middleware('auth')->group(function () {
         return response()->file(public_path('tasks.html'));
     });
     
-    Route::get('/projects', function () {
+    Route::get('/projects-view', function () {
         return response()->file(public_path('projects.html'));
     });
-    
-    // FIXED: Pakai AuthController, bukan ProfileController
-    Route::get('/profile', [AuthController::class, 'userProfile']);
+
+    Route::get('/profile-view', function () { 
+        return response()->file(public_path('profile.html')); 
+    });
+    Route::get('/profile', [ProfileController::class, 'show']);
     Route::get('/dashboard-stats', [TaskController::class, 'getDashboardStats']);
     
     Route::apiResource('/departments', DepartmentController::class);
     Route::apiResource('/users', UserController::class);
-    
+    Route::apiResource('/projects', ProjectController::class);
     Route::get('/projects/search', [ProjectController::class, 'search']);
     Route::post('/projects/{id}/add-member', [ProjectController::class, 'addMember']);
     Route::get('/projects/{projectId}/tasks', [TaskController::class, 'tasksByProject']);
-    Route::apiResource('/projects', ProjectController::class);
     
     Route::apiResource('/tasks', TaskController::class);
     

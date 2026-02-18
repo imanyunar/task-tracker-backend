@@ -1,44 +1,59 @@
+/**
+ * /js/profile.js
+ * Manajemen Halaman Profil Pengguna
+ */
+
 const API_URL = 'http://localhost:8000/api';
 const token = localStorage.getItem('api_token');
 
-if (!token) window.location.href = 'login.html';
+// 1. Proteksi Halaman: Cek keberadaan token
+if (!token) {
+    window.location.href = '/api/login';
+}
 
+// 2. Konfigurasi AJAX Global
 $.ajaxSetup({
-    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+    headers: { 
+        'Authorization': `Bearer ${token}`, 
+        'Accept': 'application/json' 
+    }
 });
 
 $(document).ready(function() {
-    fetchProfileData();
+    // 3. SINKRONISASI SIDEBAR (Mencegah Not Found/JSON Return)
+    const navToken = `?token=${token}`;
+    $('#link-dashboard').attr('href', `/api/dashboard${navToken}`);
+    $('#link-projects').attr('href', `/api/projects-view${navToken}`); 
+    $('#link-profile').attr('href', `/api/profile-view${navToken}`);
 
-    $('#logout-btn').on('click', function() {
-        localStorage.removeItem('api_token');
-        window.location.href = 'login.html';
+    // 4. LOAD DATA PROFIL
+    $.get(`${API_URL}/profile`, function(res) {
+        // Mendukung berbagai format response Laravel
+        const user = res.data || res.user || res;
+        
+        // Mengisi elemen UI
+        $('#prof-name').text(user.name);
+        $('#prof-email').text(user.email);
+        $('#prof-dept').text(user.department?.name || user.department || 'GENERAL');
+        $('#prof-role').text(user.role?.name || user.role || 'MEMBER');
+        $('#prof-joined').text(user.joined_at || 'Baru Saja Bergabung');
+        
+        // Inisial Nama
+        if (user.name) {
+            $('#profile-initial').text(user.name.charAt(0).toUpperCase());
+        }
+    }).fail(function(xhr) {
+        if (xhr.status === 401) {
+            localStorage.clear();
+            window.location.href = '/api/login';
+        }
+    });
+
+    // 5. LOGOUT HANDLER
+    $('#logout-btn').click(function() {
+        $.post(`${API_URL}/logout`, function() {
+            localStorage.clear();
+            window.location.href = '/api/login';
+        });
     });
 });
-
-function fetchProfileData() {
-    $.get(`${API_URL}/profile`, function(res) {
-        // Ambil data dari pembungkus 'data'
-        const user = res.data; 
-
-        // Update Nav & Card
-        $('#nav-user-name, #profile-name').text(user.name);
-        $('#nav-user-dept').text(`${user.department} | ${user.role}`);
-        $('#profile-role').text(user.role);
-        $('#profile-email').text(user.email);
-        $('#profile-dept').text(user.department);
-        
-        // Joined At Fix
-        if (user.joined_at) {
-            $('#profile-joined').text(user.joined_at).removeClass('italic');
-        } else {
-            $('#profile-joined').text('Data tidak tersedia');
-        }
-        
-        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
-        $('#nav-initial, #profile-initial-large').text(initials);
-
-    }).fail(function(xhr) {
-        if (xhr.status === 401) window.location.href = 'login.html';
-    });
-}

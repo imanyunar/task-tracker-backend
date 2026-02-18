@@ -1,20 +1,17 @@
 /**
- * dashboard.js
- * Updated untuk AuthController
+ * /js/dashboard.js
+ * Dashboard Logic & Protected Link Sync
  */
 
 const API_URL = 'http://localhost:8000/api';
 const token = localStorage.getItem('api_token');
 
-console.log('🚀 Dashboard loaded');
-console.log('🎫 Token:', token ? token.substring(0, 20) + '...' : 'NONE');
-
+// 1. Proteksi Halaman
 if (!token) {
-    console.log('❌ No token, redirecting...');
     window.location.href = '/api/login';
-    throw new Error('No token');
 }
 
+// 2. Konfigurasi AJAX Global
 $.ajaxSetup({
     headers: { 
         'Authorization': `Bearer ${token}`, 
@@ -23,87 +20,47 @@ $.ajaxSetup({
 });
 
 $(document).ready(function() {
-    console.log('📊 Loading data...');
+    // 3. SINKRONISASI SIDEBAR (Mencegah Not Found 404 & JSON return)
+    // Pastikan link mengarah ke rute VIEW (-view), bukan rute DATA (API Resource)
+    const navToken = `?token=${token}`;
+    $('#link-dashboard').attr('href', `/api/dashboard${navToken}`);
+    $('#link-projects').attr('href', `/api/projects-view${navToken}`); 
+    $('#link-profile').attr('href', `/api/profile-view${navToken}`);
 
-    // GET PROFILE - AuthController::userProfile
-    $.ajax({
-        url: `${API_URL}/profile`,
-        method: 'GET',
-        success: function(res) {
-            console.log('✅ Profile:', res);
-            
-            // AuthController return: {success: true, user: {...}}
-            const userData = res.user || res.data || res;
-            const userName = userData.name || 'User';
-            const userRole = userData.role?.name || userData.role || 'Member';
-            
-            $('#user-welcome').text(`Halo, ${userName} (${userRole})`);
-        },
-        error: function(xhr) {
-            console.error('❌ Profile failed:', xhr.status, xhr.responseJSON);
-            
-            if (xhr.status === 401) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Sesi Berakhir',
-                    text: 'Token tidak valid. Login kembali.',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    localStorage.clear();
-                    window.location.href = '/api/login';
-                });
-            } else {
-                $('#user-welcome').text('Error: ' + (xhr.responseJSON?.message || 'Gagal load'));
-            }
+    // 4. LOAD USER PROFILE
+    $.get(`${API_URL}/profile`, function(res) {
+        // Mendukung berbagai format response Laravel
+        const user = res.user || res.data;
+        
+        $('#user-name').text(user.name);
+        $('#dept-name').text(user.department?.name || user.department || 'GENERAL');
+        $('#user-role').text(user.role?.name || user.role || 'MEMBER');
+        $('#last-login').text(user.joined_at || 'Hari Ini');
+        
+        console.log('✅ Dashboard profile loaded for:', user.name);
+    }).fail(function(xhr) {
+        if (xhr.status === 401) logout();
+    });
+
+    // 5. LOAD DASHBOARD STATS
+    $.get(`${API_URL}/dashboard-stats`, function(res) {
+        if (res.success) {
+            $('#project-count').text(res.project_count);
+            $('#task-count').text(res.task_count_active);
+            console.log('✅ Dashboard stats synchronized');
         }
     });
 
-    // GET DASHBOARD STATS
-    $.ajax({
-        url: `${API_URL}/dashboard-stats`,
-        method: 'GET',
-        success: function(res) {
-            console.log('✅ Stats:', res);
-            
-            const stats = res.data || res;
-            $('#stat-projects').text(stats.project_count || 0);
-            $('#stat-tasks').text(stats.task_count_active || stats.task_count || 0);
-        },
-        error: function(xhr) {
-            console.error('❌ Stats failed:', xhr.status);
-            
-            if (xhr.status === 401) {
-                localStorage.clear();
-                window.location.href = '/api/login';
-            } else {
-                $('#stat-projects').text('N/A');
-                $('#stat-tasks').text('N/A');
-            }
-        }
-    });
-
-    // LOGOUT
+    // 6. LOGOUT HANDLER
     $('#logout-btn').click(function() {
-        Swal.fire({
-            title: 'Keluar?',
-            text: 'Yakin keluar?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#64748b',
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                $.ajax({
-                    url: `${API_URL}/logout`,
-                    method: 'POST',
-                    complete: function() {
-                        localStorage.clear();
-                        window.location.href = '/api/login';
-                    }
-                });
-            }
+        $.post(`${API_URL}/logout`, function() {
+            localStorage.clear();
+            window.location.href = '/api/login';
         });
     });
 });
+
+function logout() {
+    localStorage.clear();
+    window.location.href = '/api/login';
+}
