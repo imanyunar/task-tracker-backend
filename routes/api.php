@@ -37,7 +37,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::get('/dashboard-stats', [TaskController::class, 'getDashboardStats']);
-    
+    Route::get('/dashboard-stats', [TaskController::class,'getKPIStats']);
     Route::apiResource('/departments', DepartmentController::class);
     Route::apiResource('/users', UserController::class);
     Route::apiResource('/projects', ProjectController::class);

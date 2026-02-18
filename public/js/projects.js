@@ -1,79 +1,74 @@
 /**
  * /js/projects.js
- * Sistem Manajemen Projek - PT TAS
- * Fitur: CRUD, Manajemen Tim, Paginasi, & RBAC
+ * Project CRUD Logic & Sidebar Sync
  */
 
 const API_URL = 'http://localhost:8000/api';
 const token = localStorage.getItem('api_token');
 
-// 1. Proteksi Halaman & Token Check
-if (!token) {
-    window.location.href = '/api/login';
-}
+// 1. Proteksi Halaman: Arahkan ke rute API login jika token tidak ada
+if (!token) window.location.href = '/api/login';
 
-// 2. Setup AJAX Global (Bearer Token)
-$.ajaxSetup({
+// 2. AJAX Setup dengan Token Bearer untuk request data
+$.ajaxSetup({ 
     headers: { 
         'Authorization': `Bearer ${token}`, 
         'Accept': 'application/json' 
-    }
+    } 
 });
 
 let currentUserRole = '';
 let selectedProjectId = null;
 
 $(document).ready(function() {
-    // 3. Sinkronisasi Sidebar (Identik dengan Dashboard w-72)
-    // Gunakan rute -view agar tidak mengembalikan JSON mentah
+    console.log('🚀 Project Management Active');
+
+    // 3. SINKRONISASI LINK SIDEBAR (Penting agar tidak muncul JSON)
+    // Pastikan rute di api.php menggunakan nama rute view (contoh: dashboard-view, projects-view)
     const navToken = `?token=${token}`;
     $('#link-dashboard').attr('href', `/api/dashboard${navToken}`);
-    $('#link-projects').attr('href', `/api/projects-view${navToken}`); 
+    $('#link-projects').attr('href', `/api/projects-view${navToken}`); // Diubah ke -view
     $('#link-profile').attr('href', `/api/profile-view${navToken}`);
 
-    // 4. Ambil Profil & Tentukan Hak Akses
+    // 4. Ambil Profil & Cek Role
     $.get(`${API_URL}/profile`, function(res) {
-        const user = res.user || res.data;
-        // Normalisasi role untuk pengecekan
-        currentUserRole = (user.role?.name || user.role || 'employee').toLowerCase();
+        const user = res.data || res.user;
+        currentUserRole = user.role.toLowerCase(); 
+        $('#user-info-text').text(`Sesi: ${user.role} | ${user.department}`);
         
-        $('#user-info-text').text(`Sesi: ${user.role?.name || user.role} | ${user.department?.name || user.department}`);
-        
-        // Hanya Admin/Manager yang bisa akses fitur CRUD
+        // Proteksi Fitur Admin (Create/Add Team)
         if (currentUserRole !== 'employee') {
-            $('#btn-create-project, #admin-actions, #btn-add-team-det').removeClass('hidden');
+            $('#btn-create-project').removeClass('hidden');
+            $('#btn-add-team-det').removeClass('hidden');
             loadUserList(); 
         }
-        
         fetchProjects(1);
     }).fail(function(xhr) {
         if (xhr.status === 401) logout();
     });
 
-    // 5. Event Handlers
+    // 5. Form Event Handlers
     $('#form-project').submit(handleProjectSubmit);
     $('#form-add-member').submit(handleMemberSubmit);
-    $('#search-input').on('keyup', function() { 
-        fetchProjects(1, $(this).val()); 
-    });
+    $('#btn-create-project').click(openProjectModal);
+    $('#search-input').on('keyup', function() { fetchProjects(1, $(this).val()); });
+    
+    // Logout Handler
     $('#logout-btn').click(() => logout());
 });
 
 /**
- * AMBIL DATA PROJEK (Handle Laravel Pagination)
+ * AMBIL DAFTAR PROJEK (READ & SEARCH)
  */
 function fetchProjects(page = 1, search = '') {
-    const url = search 
-        ? `${API_URL}/projects/search?search=${encodeURIComponent(search)}` 
-        : `${API_URL}/projects?page=${page}`;
-
-    $.get(url, function(res) {
-        // Laravel paginate menyimpan array di 'data'
-        const projects = res.data || []; 
+    const endpoint = search ? `${API_URL}/projects/search?search=${search}` : `${API_URL}/projects?page=${page}`;
+    
+    $.get(endpoint, function(res) {
         const $list = $('#project-list').empty();
+        const projects = res.data || res;
 
-        if (projects.length === 0) {
-            $list.append('<tr><td colspan="3" class="p-10 text-center font-bold text-slate-400 uppercase tracking-widest">Tidak ada projek ditemukan</td></tr>');
+        if (!projects || projects.length === 0) {
+            $list.append('<tr><td colspan="3" class="p-20 text-center font-bold text-slate-300 italic">Tidak ada projek ditemukan</td></tr>');
             return;
         }
 
@@ -81,49 +76,22 @@ function fetchProjects(page = 1, search = '') {
             $list.append(`
                 <tr onclick="showProjectDetail(${p.id})" class="cursor-pointer hover:bg-blue-50/50 transition-all border-b border-slate-100 group">
                     <td class="p-8">
-                        <p class="text-lg font-black text-slate-800 italic uppercase leading-none group-hover:text-blue-600">${p.name}</p>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-1 line-clamp-1">${p.description || 'Klik untuk rincian...'}</p>
+                        <p class="text-xl font-black text-slate-800 italic uppercase leading-none group-hover:text-blue-600 transition-colors">${p.name}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mt-2 line-clamp-1 italic">${p.description || 'Lihat rincian projek...'}</p>
                     </td>
-                    <td class="p-8 text-center text-xs font-black text-slate-500 italic">
-                        ${p.start_date || '-'} / ${p.end_date || '-'}
-                    </td>
+                    <td class="p-8 text-center text-xs font-black text-slate-500 italic">${p.start_date} s/d ${p.end_date}</td>
                     <td class="p-8 text-right">
-                        <span class="text-[9px] font-black text-blue-600 opacity-0 group-hover:opacity-100 uppercase transition-all tracking-widest">Detail →</span>
+                        <span class="text-[9px] font-black text-blue-600 opacity-0 group-hover:opacity-100 tracking-widest uppercase transition-all">Lihat Detail →</span>
                     </td>
                 </tr>
             `);
         });
-
         if (!search && res.links) renderPagination(res);
     });
 }
 
 /**
- * RENDER TOMBOL PAGINASI
- */
-function renderPagination(res) {
-    const $c = $('#pagination-container').empty();
-    if (!res.links || res.links.length <= 3) return;
-    
-    res.links.forEach(link => {
-        if (!link.url) return;
-        const pageNum = new URL(link.url).searchParams.get('page');
-        const label = link.label.replace('&laquo; Previous', '←').replace('Next &raquo;', '→');
-        const activeClass = link.active 
-            ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' 
-            : 'bg-white text-slate-400 border border-slate-100 hover:bg-slate-50';
-
-        $c.append(`
-            <button onclick="fetchProjects(${pageNum})" 
-                class="h-10 w-10 rounded-xl font-black text-xs transition-all ${activeClass}">
-                ${label}
-            </button>
-        `);
-    });
-}
-
-/**
- * TAMPILKAN DETAIL PROJEK & TIM
+ * TAMPILKAN DETAIL PROJEK
  */
 window.showProjectDetail = function(id) {
     selectedProjectId = id;
@@ -131,35 +99,31 @@ window.showProjectDetail = function(id) {
         const p = res.data;
         $('#det-name').text(p.name);
         $('#det-desc').text(p.description || 'Tidak ada deskripsi projek.');
-        $('#det-start').text(p.start_date || '-');
-        $('#det-end').text(p.end_date || '-');
+        $('#det-start').text(p.start_date);
+        $('#det-end').text(p.end_date);
         
-        // Redirect ke halaman tugas dengan filter projek
-        $('#btn-task-det').attr('onclick', `window.location.href='/api/tasks-view?token=${token}&project_id=${id}'`);
-
-        // Render Anggota Tim dari Pivot Table
+        // Render List Tim
         const $teamList = $('#det-team-list').empty();
-        const members = p.members || [];
-        
-        if (members.length === 0) {
-            $teamList.append('<p class="text-xs font-bold text-slate-400 uppercase italic">Belum ada anggota tim.</p>');
-        } else {
-            members.forEach(m => {
-                $teamList.append(`
-                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center space-x-3">
-                        <div class="h-8 w-8 bg-blue-600 text-white rounded-lg flex items-center justify-center font-black text-xs uppercase">${m.name.charAt(0)}</div>
-                        <div>
-                            <p class="text-[11px] font-black uppercase text-slate-800">${m.name}</p>
-                            <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">${m.pivot?.role_in_project || 'Anggota'}</p>
-                        </div>
-                    </div>`);
-            });
-        }
+        (p.members || []).forEach(m => {
+            $teamList.append(`
+                <div class="bg-slate-50 p-5 rounded-3xl border border-slate-100 flex items-center space-x-3 performance-card">
+                    <div class="h-10 w-10 bg-blue-600 text-white rounded-xl flex items-center justify-center font-black text-[10px]">TAS</div>
+                    <div>
+                        <p class="text-xs font-black italic uppercase text-slate-800 leading-none">${m.name}</p>
+                        <p class="text-[9px] font-bold text-blue-600 uppercase mt-1 tracking-tighter">${m.pivot?.role_in_project || 'Anggota'}</p>
+                    </div>
+                </div>`);
+        });
 
+        // Tampilkan tombol Admin jika role bukan Employee
         if (currentUserRole !== 'employee') {
+            $('#admin-actions').removeClass('hidden');
             $('#btn-edit-det').attr('onclick', `openEditModal(${id})`);
             $('#btn-delete-det').attr('onclick', `deleteProject(${id})`);
         }
+        
+        // FIX: Gunakan /tasks-view agar memuat HTML, bukan JSON mentah
+        $('#btn-task-det').attr('onclick', `window.location.href='/api/tasks-view?project_id=${id}&token=${token}'`); 
 
         $('#project-list-view').addClass('hidden');
         $('#project-detail-view').removeClass('hidden');
@@ -167,8 +131,15 @@ window.showProjectDetail = function(id) {
     });
 }
 
+window.backToList = function() {
+    $('#project-detail-view').addClass('hidden');
+    $('#project-list-view').removeClass('hidden');
+    $('#header-title').text('Manajemen Projek');
+    fetchProjects(1);
+};
+
 /**
- * CRUD & MANAJEMEN TIM
+ * LOGIKA SUBMIT (POST/PUT)
  */
 function handleProjectSubmit(e) {
     e.preventDefault();
@@ -179,76 +150,99 @@ function handleProjectSubmit(e) {
         start_date: $('#project-start-input').val(), 
         end_date: $('#project-end-input').val() 
     };
-    
+
     $.ajax({ 
         url: id ? `${API_URL}/projects/${id}` : `${API_URL}/projects`, 
         method: id ? 'PUT' : 'POST', 
         data: data, 
-        success: function() { 
-            $('#modal-project').addClass('hidden'); 
-            Swal.fire('Berhasil!', 'Data projek telah disinkronkan.', 'success');
-            id ? showProjectDetail(id) : fetchProjects(1); 
-        },
-        error: (xhr) => Swal.fire('Gagal', xhr.responseJSON?.message || 'Terjadi kesalahan sistem', 'error')
+        success: () => { 
+            Swal.fire('Sukses', 'Data projek berhasil disimpan', 'success');
+            $('#modal-project').addClass('hidden');
+            id ? showProjectDetail(id) : fetchProjects(1);
+        }
     });
 }
 
 function handleMemberSubmit(e) {
     e.preventDefault();
     $.post(`${API_URL}/projects/${selectedProjectId}/add-member`, { 
-        user_id: $('#select-user').val(),
-        role: $('#member-role').val()
-    }).done(function() { 
-        $('#modal-team').addClass('hidden'); 
-        Swal.fire('Berhasil!', 'Anggota baru telah bergabung dalam tim.', 'success');
-        showProjectDetail(selectedProjectId); 
-    }).fail((xhr) => Swal.fire('Gagal', xhr.responseJSON?.message || 'Cek koneksi database', 'error'));
+        user_id: $('#select-user').val(), 
+        role: "Anggota Tim" 
+    }).done(() => { 
+        Swal.fire('Tim Ditambahkan', 'Anggota baru berhasil bergabung', 'success');
+        $('#modal-team').addClass('hidden');
+        showProjectDetail(selectedProjectId);
+    });
 }
 
 window.deleteProject = (id) => { 
     Swal.fire({
         title: 'Hapus Projek?',
-        text: "Seluruh data tugas terkait juga akan terhapus!",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'Ya, Hapus Projek'
+        confirmButtonText: 'Ya, Hapus!'
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({ 
                 url: `${API_URL}/projects/${id}`, 
                 method: 'DELETE', 
-                success: function() {
-                    Swal.fire('Dihapus!', 'Projek berhasil dibersihkan dari sistem.', 'success');
+                success: () => {
+                    Swal.fire('Terhapus!', 'Projek berhasil dihapus.', 'success');
                     backToList();
-                    fetchProjects(1);
                 }
-            }); 
+            });
         }
     });
 };
 
-// Fungsi Utility
-function backToList() { $('#project-detail-view').addClass('hidden'); $('#project-list-view').removeClass('hidden'); $('#header-title').text('Manajemen Projek'); }
-function logout() { localStorage.clear(); window.location.href = '/api/login'; }
-function openProjectModal() { $('#form-project')[0].reset(); $('#project-id').val(''); $('#modal-project-title').text('Buat Projek Baru'); $('#modal-project').removeClass('hidden'); }
-function openTeamModal() { $('#modal-team').removeClass('hidden'); $('#member-role').val(''); }
-function openEditModal(id) { 
-    $.get(`${API_URL}/projects/${id}`, (res) => { 
-        const p = res.data; 
-        $('#project-id').val(p.id); 
-        $('#project-name').val(p.name); 
-        $('#project-desc-input').val(p.description); 
-        $('#project-start-input').val(p.start_date); 
-        $('#project-end-input').val(p.end_date); 
-        $('#modal-project-title').text('Edit Data Projek'); 
-        $('#modal-project').removeClass('hidden'); 
-    }); 
-}
+/**
+ * UTILITIES
+ */
 function loadUserList() { 
     $.get(`${API_URL}/users`, (res) => {
-        const $select = $('#select-user').empty().append('<option value="">Pilih Karyawan</option>');
-        const list = Array.isArray(res) ? res : (res.data || []);
-        list.forEach(u => $select.append(`<option value="${u.id}">${u.name}</option>`));
+        const users = res.data || res;
+        $('#select-user').empty().append('<option value="">Cari Nama...</option>');
+        users.forEach(u => $('#select-user').append(`<option value="${u.id}">${u.name} - ${u.department}</option>`)); 
+    });
+}
+
+function openProjectModal() { 
+    $('#form-project')[0].reset();
+    $('#project-id').val('');
+    $('#modal-project-title').text('Buat Projek Baru');
+    $('#modal-project').removeClass('hidden');
+}
+
+window.openEditModal = (id) => { 
+    $.get(`${API_URL}/projects/${id}`, (res) => { 
+        const p = res.data;
+        $('#project-id').val(p.id);
+        $('#project-name').val(p.name);
+        $('#project-desc-input').val(p.description);
+        $('#project-start-input').val(p.start_date);
+        $('#project-end-input').val(p.end_date);
+        $('#modal-project-title').text('Edit Rincian Projek');
+        $('#modal-project').removeClass('hidden');
     }); 
+};
+
+window.openTeamModal = () => { 
+    $('#member-project-id').val(selectedProjectId);
+    $('#modal-team').removeClass('hidden');
+};
+
+function renderPagination(res) { 
+    const $c = $('#pagination-container').empty();
+    if(!res.links) return;
+    res.links.forEach(l => { 
+        if(l.url){ 
+            const p = new URL(l.url).searchParams.get('page');
+            $c.append(`<button onclick="fetchProjects(${p})" class="h-10 w-10 rounded-xl font-black text-xs transition-all ${l.active ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-400 hover:bg-blue-50'}">${l.label.replace('&laquo; Previous', '<').replace('Next &raquo;', '>')}</button>`);
+        } 
+    }); 
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = '/api/login';
 }

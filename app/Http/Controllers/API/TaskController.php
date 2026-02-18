@@ -102,7 +102,7 @@ class TaskController extends Controller
     public function tasksByProject(Request $request, $projectId)
     {
         $user = $request->user();
-        $task = Task::with('user')->where('project_id', $projectId);
+        $task = Task::with('user.department')->where('project_id', $projectId);
         if ($user->role_id == 3) {
             $isMember = Project::where('id', $projectId)
                 ->whereHas('members', function ($query) use ($user) {
@@ -150,10 +150,42 @@ class TaskController extends Controller
 }
 
 public function show ($id){
-     $task = Task::with('project', 'user') -> findOrFail($id);
+     $task = Task::with('project', 'user.department') -> findOrFail($id);
      return response()->json([
         'success' => true,
         'data' => $task,
      ], 200);
+}
+
+public function getKPIStats(Request $request)
+{
+    $user = $request->user();
+
+    $totalTasks = Task::where('user_id', $user->id)->count();
+    $doneTasks = Task::where('user_id', $user->id)->where('status', 'done')->count();
+    $completionRate = $totalTasks > 0 ? ($doneTasks / $totalTasks) * 100 : 0;
+
+    $onTimeTasks = Task::where('user_id', $user->id)
+                    ->where('status', 'done')
+                    ->whereColumn('updated_at', '<=', 'due_date')->count();
+    $timelinessRate = $doneTasks > 0 ? ($onTimeTasks / $doneTasks) * 100 : 0;
+
+    $projectCount = Project::whereHas('members', function($q) use ($user) {
+        $q->where('user_id', $user->id);
+    })->count();
+    $projectScore = min($projectCount * 20, 100); 
+
+    $finalKPI = ($completionRate * 0.6) + ($timelinessRate * 0.3) + ($projectScore * 0.1);
+
+    return response()->json([
+        'success' => true,
+        'score' => round($finalKPI, 2),
+        'metrics' => [
+            'completion' => round($completionRate),
+            'attendance' => 0, 
+            'timeliness' => round($timelinessRate),
+            'projects'   => $projectCount
+        ]
+    ]);
 }
 }

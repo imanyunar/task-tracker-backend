@@ -3,92 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Task Tracker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Dashboard Performa - PT TAS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .sidebar-gradient { background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); }
+        .performance-card { transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.1); }
+        .performance-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -15px rgba(0,0,0,0.1); }
+        .progress-ring__circle { transition: stroke-dashoffset 0.8s ease-in-out; transform: rotate(-90deg); transform-origin: 50% 50%; }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex font-['Inter']">
+<body class="text-slate-900 min-h-screen flex">
 
-    <aside class="w-72 bg-slate-900 text-slate-400 flex flex-col fixed h-full z-50 shadow-2xl">
+    <aside class="w-72 sidebar-gradient text-slate-400 flex flex-col fixed h-full z-50 shadow-2xl">
         <div class="p-8 flex items-center space-x-3">
-            <div class="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/50">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <div class="h-11 w-11 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/40">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
-            <h1 class="text-xl font-extrabold italic uppercase text-white tracking-tighter">Task Tracker</h1>
+            <h1 class="text-xl font-black italic uppercase text-white tracking-tighter">PT TAS</h1>
         </div>
 
-        <nav class="flex-1 px-4 mt-4 space-y-1">
-            <p class="px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Main Menu</p>
-            <a id="link-dashboard" href="#" class="flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm bg-blue-600 text-white shadow-lg shadow-blue-600/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <nav class="flex-1 px-4 mt-6 space-y-2">
+            <p class="px-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Navigasi Utama</p>
+            <a id="link-dashboard" href="#" class="flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm bg-blue-600 text-white shadow-xl shadow-blue-600/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                 <span>Dashboard</span>
             </a>
-            <a id="link-projects" href="#" class="flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm hover:bg-slate-800 hover:text-white transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <a id="link-projects" href="#" class="flex items-center space-x-3 p-4 rounded-2xl font-semibold text-sm hover:bg-white/10 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                 <span>Daftar Projek</span>
             </a>
-            <a id="link-profile" href="#" class="flex items-center space-x-3 p-4 rounded-2xl font-bold text-sm hover:bg-slate-800 hover:text-white transition-all">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <a id="link-profile" href="#" class="flex items-center space-x-3 p-4 rounded-2xl font-semibold text-sm hover:bg-white/10 hover:text-white transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                 <span>Profil Saya</span>
             </a>
         </nav>
 
-        <div class="p-6 border-t border-slate-800">
-            <button id="logout-btn" class="w-full bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white p-4 rounded-2xl font-black text-xs uppercase shadow-lg transition-all">
+        <div class="p-6 border-t border-white/5">
+            <button id="logout-btn" class="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white p-4 rounded-2xl font-black text-xs uppercase shadow-lg transition-all tracking-widest">
                 Logout System
             </button>
         </div>
     </aside>
 
     <main class="flex-1 ml-72 p-12">
-        <header class="flex justify-between items-center mb-12">
-            <div>
-                <h2 class="text-3xl font-black text-slate-800 uppercase italic tracking-tighter">Overview Dashboard</h2>
-                <p class="text-slate-400 font-medium italic">Selamat datang kembali, <span id="user-name" class="text-blue-600 font-bold">...</span></p>
+        
+        <header class="flex justify-between items-center mb-12 bg-white/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-white shadow-sm">
+            <div class="space-y-1">
+                <h2 class="text-2xl font-black text-slate-800 italic uppercase tracking-tighter leading-none">Statistik Kinerja</h2>
+                <p class="text-slate-400 font-medium text-sm">Kerja bagus hari ini, <span id="user-name" class="text-blue-600 font-bold">...</span>!</p>
             </div>
-            <div class="text-right">
-                <p id="dept-name" class="text-xs font-black text-slate-400 uppercase tracking-widest leading-none">DEPARTEMEN</p>
-                <p id="user-role" class="text-lg font-black text-slate-800 italic uppercase">ROLE USER</p>
+            
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <p id="user-role" class="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] leading-none">MEMBER</p>
+                    <p id="dept-name" class="text-sm font-bold text-slate-800 uppercase tracking-tighter mt-1">DEPARTEMEN</p>
+                </div>
+                <div class="h-12 w-12 bg-white rounded-2xl shadow-md border-2 border-white flex items-center justify-center font-black text-blue-600 text-xl">👤</div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                    <svg class="w-20 h-20 text-blue-600" fill="currentColor" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            
+            <div class="performance-card bg-slate-900 p-10 rounded-[4rem] shadow-2xl flex flex-col items-center justify-center text-center relative overflow-hidden group">
+                <div class="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-8 relative z-10">Final KPI Score</p>
+                
+                <div class="relative flex items-center justify-center z-10">
+                    <svg class="w-48 h-48">
+                        <circle class="text-slate-800" stroke-width="12" stroke="currentColor" fill="transparent" r="80" cx="96" cy="96"/>
+                        <circle id="kpi-ring" class="text-blue-500 progress-ring__circle" stroke-width="12" stroke-dasharray="502.65" stroke-dashoffset="502.65" stroke-linecap="round" stroke="currentColor" fill="transparent" r="80" cx="96" cy="96"/>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <h3 id="final-kpi-score" class="text-6xl font-black text-white italic leading-none">0</h3>
+                        <p class="text-[10px] font-bold text-blue-400 uppercase mt-2">Points</p>
+                    </div>
                 </div>
-                <p class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Projek</p>
-                <h3 id="project-count" class="text-5xl font-black text-slate-800 italic leading-none">0</h3>
-                <p class="text-xs font-bold text-blue-600 mt-4 uppercase">Aktif di sistem</p>
             </div>
 
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden group">
-                <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                    <svg class="w-20 h-20 text-emerald-600" fill="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="performance-card bg-white p-8 rounded-[3rem] shadow-xl shadow-slate-200/50">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Task Completion</p>
+                    <h4 id="metric-completion" class="text-5xl font-black text-slate-800 italic">0%</h4>
+                    <div class="w-full bg-slate-100 h-2 rounded-full mt-6 overflow-hidden">
+                        <div id="bar-completion" class="bg-blue-600 h-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
                 </div>
-                <p class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Tugas Aktif</p>
-                <h3 id="task-count" class="text-5xl font-black text-slate-800 italic leading-none">0</h3>
-                <p class="text-xs font-bold text-emerald-600 mt-4 uppercase">Status Belum Selesai</p>
-            </div>
 
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col justify-center items-center text-center">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Quick Action</p>
-                <button onclick="window.location.reload()" class="bg-slate-900 text-white w-full py-4 rounded-2xl font-black text-xs uppercase shadow-lg hover:bg-blue-600 transition-all">Refresh Data</button>
+                <div class="performance-card bg-white p-8 rounded-[3rem] shadow-xl shadow-slate-200/50">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Timeliness (Ketepatan)</p>
+                    <h4 id="metric-timeliness" class="text-5xl font-black text-slate-800 italic">0%</h4>
+                    <div class="w-full bg-slate-100 h-2 rounded-full mt-6 overflow-hidden">
+                        <div id="bar-timeliness" class="bg-emerald-500 h-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="performance-card bg-white p-8 rounded-[3rem] shadow-xl shadow-slate-200/50 md:col-span-2 flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Projek Terlibat</p>
+                        <h4 id="project-count" class="text-4xl font-black text-slate-800 italic">0</h4>
+                    </div>
+                    <div class="h-16 w-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-3xl">📁</div>
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl">
-                <h4 class="text-lg font-black text-slate-800 uppercase italic mb-8">Informasi Sistem</h4>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div class="bg-white p-12 rounded-[4rem] border border-slate-100 shadow-2xl shadow-slate-200/50">
+                <div class="flex justify-between items-center mb-10">
+                    <h4 class="text-2xl font-black text-slate-800 italic uppercase tracking-tighter leading-none">Informasi Akun</h4>
+                    <span class="px-5 py-2 bg-slate-100 text-slate-400 rounded-full text-[10px] font-black uppercase tracking-widest">Aktivitas</span>
+                </div>
                 <div class="space-y-6">
-                    <div class="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                        <span class="text-xs font-bold text-slate-500 uppercase">Server Status</span>
-                        <span class="px-4 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[10px] font-black uppercase">Online</span>
-                    </div>
-                    <div class="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                        <span class="text-xs font-bold text-slate-500 uppercase">Last Login</span>
-                        <span id="last-login" class="text-xs font-black text-slate-800 italic">...</span>
+                    <div class="flex items-center justify-between p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+                        <div class="flex items-center space-x-4">
+                            <div class="h-10 w-10 bg-white rounded-xl shadow-sm flex items-center justify-center">📅</div>
+                            <span class="text-xs font-black text-slate-500 uppercase tracking-widest">Terdaftar Sejak</span>
+                        </div>
+                        <span id="last-login" class="text-sm font-black text-slate-800 italic">...</span>
                     </div>
                 </div>
             </div>
