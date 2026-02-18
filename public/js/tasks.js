@@ -1,14 +1,10 @@
-/**
- * /js/tasks.js
- * Manajemen Tugas Modern - Tab Based System
- */
+
 
 const API_URL = 'http://localhost:8000/api';
 const token = localStorage.getItem('api_token');
 const urlParams = new URLSearchParams(window.location.search);
 const projectId = urlParams.get('project_id');
 
-// Mapping Departemen Sesuai Database Anda
 const DEPARTMENT_MAP = {
     1: 'IT Support',
     2: 'Human Resource',

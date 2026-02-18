@@ -1,8 +1,4 @@
-/**
- * login.js
- * Diperbarui untuk mendukung penguncian rute HTML di sisi server
- */
-
+ 
 const API_URL = 'http://localhost:8000/api';
 
 $(document).ready(function() {
