@@ -13,7 +13,7 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $query = Task::with(['project']);
+        $query = Task::with(['project', 'user']);
         if ($user->role_id == 3){
             $tasks = $query->whereHas('project.members', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
@@ -102,7 +102,7 @@ class TaskController extends Controller
     public function tasksByProject(Request $request, $projectId)
     {
         $user = $request->user();
-        $task = Task::where('project_id', $projectId);
+        $task = Task::with('user')->where('project_id', $projectId);
         if ($user->role_id == 3) {
             $isMember = Project::where('id', $projectId)
                 ->whereHas('members', function ($query) use ($user) {
@@ -147,5 +147,13 @@ class TaskController extends Controller
         'project_count' => $projectCount,
         'task_count_active' => $taskCountactive
     ], 200);
+}
+
+public function show ($id){
+     $task = Task::with('project', 'user') -> findOrFail($id);
+     return response()->json([
+        'success' => true,
+        'data' => $task,
+     ], 200);
 }
 }

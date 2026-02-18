@@ -24,7 +24,7 @@ Route::middleware('auth')->group(function () {
         return response()->file(public_path('dashboard.html'));
     });
     
-    Route::get('/tasks', function () {
+    Route::get('/tasks-view', function () {
         return response()->file(public_path('tasks.html'));
     });
     
